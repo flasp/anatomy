@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Le corps humain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1 id="title">Le corps humain</h1>
+    <p id="subtitle" class="subtitle">Planche anatomique à explorer</p>
+  </div>
+  <div class="lang" role="group" aria-label="Langue / Language">
+    <button data-lang="fr">FR</button><button data-lang="en">EN</button>
+  </div>
+</header>
+
+<nav id="layers" class="layers" aria-label="Calques"></nav>
+
+<main id="stage" class="stage">
+  <canvas id="view" aria-label="Corps humain en 3D"></canvas>
+  <svg id="lines" class="lines" aria-hidden="true"></svg>
+  <div id="labels" class="labels"></div>
+  <p id="status" class="status">Chargement du corps…</p>
+  <aside id="card" class="card" hidden>
+    <button id="cardClose" class="close" aria-label="Fermer">×</button>
+    <p id="cardLayer" class="card-layer"></p>
+    <h2 id="cardName"></h2>
+    <p id="cardText"></p>
+    <p id="cardFact" class="fact"></p>
+    <div class="card-actions">
+      <button id="speak" class="btn"><span aria-hidden="true">🔊</span> <span id="speakLabel">Écouter</span></button>
+      <a id="wiki" class="btn" target="_blank" rel="noopener"><span id="wikiLabel">Wikipédia</span> ↗</a>
+    </div>
+  </aside>
+</main>
+
+<div class="controls">
+  <label class="explode">
+    <span id="lblTogether">Rassemblé</span>
+    <input id="explode" type="range" min="0" max="100" step="1" value="0">
+    <span id="lblApart">Éclaté</span>
+  </label>
+  <div class="views" role="group">
+    <button class="btn" data-view="front" id="vFront">Face</button>
+    <button class="btn" data-view="back" id="vBack">Dos</button>
+    <button class="btn" data-view="side" id="vSide">Profil</button>
+    <button class="btn" id="toggleNames" aria-pressed="true">Noms</button>
+  </div>
+</div>
+
+<footer class="credits" id="credits"></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
