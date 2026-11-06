@@ -1,0 +1,13 @@
+{
+  "name": "anatomy-tools",
+  "private": true,
+  "type": "module",
+  "scripts": { "build-model": "node build-model.mjs" },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/extensions": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "meshoptimizer": "^0.22.0",
+    "three": "0.170.0"
+  }
+}

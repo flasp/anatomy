@@ -1,0 +1,383 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+const LAYERS = [
+  { id: 'skin', fr: 'Aspect extérieur', en: 'Outside', color: '#e6c7a2' },
+  { id: 'muscles', fr: 'Muscles', en: 'Muscles', color: '#b5432f' },
+  { id: 'blood', fr: 'Sang', en: 'Blood', color: '#b22a22' },
+  { id: 'nerves', fr: 'Nerfs', en: 'Nerves', color: '#d4ac2a' },
+  { id: 'organs', fr: 'Organes', en: 'Organs', color: '#c98468' },
+  { id: 'bones', fr: 'Os', en: 'Bones', color: '#ebdfc4' },
+];
+// how deep each layer sits: an outer layer turns see-through when a deeper one is shown
+const DEPTH = { bones: 0, organs: 1, nerves: 1, blood: 1, muscles: 2, skin: 3 };
+const SEE_THROUGH = { skin: 0.16, muscles: 0.4 };
+const COLORS = {
+  skin: '#e6c7a2', brain: '#d9a39b', eyes: '#f1ebdc', optic_nerves: '#d4ac2a', trachea: '#e3c9ad', esophagus: '#c98a7a',
+  heart: '#a8322a', lungs: '#d98f88', liver: '#7f3424', stomach: '#c98468', small_intestine: '#dba27c',
+  large_intestine: '#c4845d', kidneys: '#8f3a2c', bladder: '#d9b860', teeth: '#f5f0e2',
+  aorta: '#b22a22', arteries: '#b22a22', venae_cavae: '#4a6a8a', veins: '#4a6a8a',
+  spinal_cord: '#e0c060', arm_nerves: '#d4ac2a', sciatic_nerve: '#d4ac2a',
+};
+const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#b5432f' };
+const UI = {
+  fr: { title: 'Le corps humain', subtitle: 'Planche anatomique à explorer', together: 'Rassemblé', apart: 'Éclaté',
+    front: 'Face', back: 'Dos', side: 'Profil', names: 'Noms', listen: 'Écouter', wiki: 'Wikipédia', fact: 'Le savais-tu ?',
+    loading: 'Chargement du corps…', error: 'Le corps n’a pas pu être chargé. Recharge la page.', close: 'Fermer',
+    credits: 'Modèles 3D : <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, licence CC BY 4.0. Moelle épinière et nerfs des membres tracés d’après l’anatomie. Pour aller plus loin : <a href="https://fr.wikipedia.org/wiki/Anatomie_humaine" target="_blank" rel="noopener">Anatomie humaine</a>.' },
+  en: { title: 'The human body', subtitle: 'An anatomy plate to explore', together: 'Together', apart: 'Exploded',
+    front: 'Front', back: 'Back', side: 'Side', names: 'Names', listen: 'Listen', wiki: 'Wikipedia', fact: 'Did you know?',
+    loading: 'Loading the body…', error: 'The body could not be loaded. Please reload the page.', close: 'Close',
+    credits: '3D models: <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, CC BY 4.0 licence. Spinal cord and limb nerves drawn from anatomy references. Learn more: <a href="https://en.wikipedia.org/wiki/Human_body" target="_blank" rel="noopener">Human body</a>.' },
+};
+
+const $ = id => document.getElementById(id);
+const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
+const state = { lang: store.get('lang') === 'en' ? 'en' : 'fr', layers: new Set(['skin', 'organs']), explode: 0, selected: null, names: true };
+
+// ---------- 3D scene ----------
+const stage = $('stage'), canvas = $('view');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
+camera.position.set(0, 0, 4.5);
+const controls = new OrbitControls(camera, canvas);
+controls.enablePan = false;
+controls.enableDamping = true;
+controls.minDistance = 0.6;
+controls.maxDistance = 8;
+scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.6));
+const key = new THREE.DirectionalLight(0xffffff, 2.2);
+camera.add(key); key.position.set(-1.5, 2, 1); scene.add(camera); // light follows the viewer
+
+// three-tone ramp: flat, printed look
+const ramp = new THREE.DataTexture(new Uint8Array([110, 110, 110, 255, 185, 185, 185, 255, 255, 255, 255, 255]), 3, 1);
+ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+// ink outline (inverted hull), width follows zoom so it stays about one pixel
+const outlineW = { value: 0.003 };
+const inkMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, side: THREE.BackSide });
+inkMat.onBeforeCompile = s => {
+  s.uniforms.outlineW = outlineW;
+  s.vertexShader = 'uniform float outlineW;\n' + s.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed = position + normal * outlineW;');
+};
+
+const model = new THREE.Group(); scene.add(model);
+let parts = [], byId = new Map(), groups = []; // groups: one per part side, explode together
+const paper = new THREE.Color('#efe4cc');
+
+function anchorsFor(geo) {
+  // surface points of the mesh seen from front, back, left and right
+  const p = geo.attributes.position, c = new THREE.Vector3(); geo.boundingBox.getCenter(c);
+  const dirs = [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]].map(d => new THREE.Vector3(...d));
+  const best = dirs.map(() => ({ s: -Infinity, v: new THREE.Vector3() })), v = new THREE.Vector3(), w = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).sub(c);
+    dirs.forEach((d, k) => {
+      const along = v.dot(d), perp = w.copy(v).addScaledVector(d, -along).length();
+      const s = along - 1.5 * perp;
+      if (s > best[k].s) { best[k].s = s; best[k].v.copy(v).add(c); }
+    });
+  }
+  return dirs.map((d, k) => ({ dir: d, pos: best[k].v }));
+}
+
+function skinAnchor(geo, [x, z, face]) {
+  // nearest skin vertex to (x, z) on the requested face; coordinates in BodyParts3D millimetres
+  const X = x / 1000, Y = (z - 781.5) / 1000, p = geo.attributes.position, v = new THREE.Vector3();
+  const dir = { front: [0, 0, 1], back: [0, 0, -1], left: [1, 0, 0], right: [-1, 0, 0] }[face];
+  const D = new THREE.Vector3(...dir);
+  let best = null, bs = -Infinity;
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    // side faces are matched on height and depth (ears sit mid-depth), front/back faces on height and width
+    const d2 = face === 'left' || face === 'right' ? Math.hypot(v.z, v.y - Y) : Math.hypot(v.x - X, v.y - Y);
+    if (d2 > 0.03) continue;
+    const s = v.dot(D) - d2 * 0.5;
+    if (s > bs) { bs = s; best = v.clone(); }
+  }
+  return best && [{ dir: D, pos: best }];
+}
+
+async function load() {
+  const [data, gltf] = await Promise.all([
+    fetch('data/parts.json').then(r => r.json()),
+    new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('models/body.glb'),
+  ]);
+  parts = data.parts;
+  parts.forEach((p, i) => { p.index = i; p.groups = []; byId.set(p.id, p); });
+  let skinGeo = null;
+  gltf.scene.updateMatrixWorld(true);
+  gltf.scene.traverse(o => {
+    if (!o.isMesh) return;
+    const [id, side] = o.name.split('|'), part = byId.get(id);
+    if (!part) return;
+    // positions are quantized with a node transform: bake it into plain float positions
+    const q = o.geometry.attributes.position, f = new Float32Array(q.count * 3), v = new THREE.Vector3();
+    for (let i = 0; i < q.count; i++) v.fromBufferAttribute(q, i).applyMatrix4(o.matrixWorld).toArray(f, i * 3);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(f, 3)); geo.setIndex(o.geometry.index);
+    geo.computeVertexNormals(); geo.computeBoundingBox();
+    const isSkin = id === 'skin';
+    const base = new THREE.Color(COLORS[id] || LAYER_COLOR[part.layers[0]] || '#cccccc');
+    const mat = new THREE.MeshToonMaterial({ color: base.clone(), gradientMap: ramp });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.userData.part = part;
+    const g = new THREE.Group(); g.add(mesh);
+    const hull = new THREE.Mesh(geo, inkMat); hull.raycast = () => {}; g.add(hull); g.userData.hull = hull;
+    const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+    Object.assign(g.userData, { part, side, mesh, base, center, anchors: anchorsFor(geo) });
+    model.add(g); groups.push(g); part.groups.push(g);
+    if (isSkin) skinGeo = geo;
+  });
+  for (const p of parts) if (p.anchor && skinGeo) p.fixed = skinAnchor(skinGeo, p.anchor);
+  $('status').hidden = true;
+  applyState();
+}
+
+// ---------- state → scene ----------
+const visible = p => p.layers.some(l => state.layers.has(l));
+function opacityOf(layer) {
+  const deeper = [...state.layers].some(l => DEPTH[l] < DEPTH[layer]);
+  return deeper && SEE_THROUGH[layer] ? SEE_THROUGH[layer] : 1;
+}
+function applyState() {
+  for (const g of groups) {
+    const { part, mesh, base, hull } = g.userData;
+    g.visible = visible(part);
+    // a part shared by several layers takes the most opaque of its active layers
+    const op = Math.max(...part.layers.filter(l => state.layers.has(l)).map(opacityOf), 0);
+    const m = mesh.material;
+    m.opacity = op; m.transparent = op < 1; m.depthWrite = op === 1;
+    if (hull) hull.visible = op === 1;
+    const dim = state.selected && state.selected !== part.id;
+    m.color.copy(base); if (dim) m.color.lerp(paper, 0.6);
+    m.emissive.set(state.selected === part.id ? 0x5a2a08 : 0x000000);
+    mesh.renderOrder = op < 1 ? 2 : 0;
+  }
+  renderUI();
+}
+
+// ---------- labels ----------
+const labelBox = $('labels'), lines = $('lines');
+const labelEls = new Map();
+function labelEl(p) {
+  if (!labelEls.has(p.id)) {
+    const b = document.createElement('button'); b.className = 'lbl';
+    b.addEventListener('click', e => { e.stopPropagation(); select(p.id); });
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); dot.setAttribute('r', '2.2');
+    labelBox.append(b); lines.append(path, dot);
+    labelEls.set(p.id, { b, path, dot });
+  }
+  return labelEls.get(p.id);
+}
+const tmp = new THREE.Vector3(), camDir = new THREE.Vector3();
+function layoutLabels() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const col = labelBox.firstElementChild?.offsetWidth || 150;
+  camDir.copy(camera.position).sub(controls.target).setY(0).normalize();
+  const items = [];
+  for (const p of parts) {
+    const el = p.groups.length || p.fixed ? labelEl(p) : null;
+    if (!el) continue;
+    let anchor = null;
+    if (state.names && visible(p)) {
+      if (p.fixed) {
+        const a = p.fixed[0];
+        if (a.dir.dot(camDir) > 0.1) anchor = a.pos;
+      } else if (p.groups.length) {
+        let best = -Infinity;
+        for (const g of p.groups) for (const a of g.userData.anchors) {
+          const s = a.dir.dot(camDir) + (p.index % 2 ? 1 : -1) * 0.001 * g.userData.center.x;
+          if (s > best) { best = s; anchor = tmp.copy(a.pos).add(g.position).clone(); }
+        }
+      }
+    }
+    if (!anchor) { el.b.style.display = 'none'; el.path.style.display = el.dot.style.display = 'none'; continue; }
+    const s = anchor.clone().project(camera);
+    if (s.z > 1) { el.b.style.display = 'none'; el.path.style.display = el.dot.style.display = 'none'; continue; }
+    items.push({ p, el, x: (s.x + 1) / 2 * W, y: (1 - s.y) / 2 * H });
+  }
+  // label columns hug the figure, like on a printed plate
+  let fx0 = W, fx1 = 0;
+  for (const g of groups) {
+    if (!g.visible) continue;
+    const b = g.userData.mesh.geometry.boundingBox;
+    for (let k = 0; k < 8; k++) {
+      tmp.set(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).add(g.position).project(camera);
+      const x = (tmp.x + 1) / 2 * W; fx0 = Math.min(fx0, x); fx1 = Math.max(fx1, x);
+    }
+  }
+  const gap = 36, colL = Math.max(0, Math.min(fx0 - gap - col, W / 2 - col - gap)), colR = Math.min(W - col, Math.max(fx1 + gap, W / 2 + gap));
+  const top = 10, bottom = H - 10;
+  for (const side of ['l', 'r']) {
+    const list = items.filter(i => (i.x < W / 2) === (side === 'l')).sort((a, b) => a.y - b.y);
+    const h = Math.max(14, Math.min(22, (bottom - top) / Math.max(list.length, 1)));
+    let y = top;
+    for (const i of list) { i.ly = Math.max(i.y, y); y = i.ly + h; }
+    y = bottom;
+    for (const i of list.reverse()) { i.ly = Math.min(i.ly, y - h); y = i.ly; }
+    for (const i of list) {
+      const { b, path, dot } = i.el, sel = state.selected === i.p.id;
+      b.style.display = path.style.display = dot.style.display = '';
+      b.className = `lbl ${side}${sel ? ' sel' : ''}`;
+      const left = side === 'l' ? colL : colR;
+      b.style.transform = `translate(${left}px, ${i.ly}px)`;
+      const ex = side === 'l' ? colL + col + 2 : colR - 2, ey = i.ly + h / 2;
+      path.setAttribute('d', `M${ex} ${ey} L${i.x.toFixed(1)} ${i.y.toFixed(1)}`);
+      path.setAttribute('class', sel ? 'sel' : '');
+      dot.setAttribute('cx', i.x.toFixed(1)); dot.setAttribute('cy', i.y.toFixed(1));
+    }
+  }
+}
+
+// ---------- explode ----------
+let explodeNow = 0;
+const HUB = new THREE.Vector3(0, 0.3, 0);
+const zoomOut = e => 1 + 0.25 * e;
+function placeGroups() {
+  const before = explodeNow;
+  explodeNow += (state.explode - explodeNow) * 0.15;
+  if (Math.abs(state.explode - explodeNow) < 1e-4) explodeNow = state.explode;
+  if (explodeNow === before) return;
+  for (const g of groups) {
+    if (g.userData.part.id === 'skin') continue;
+    const c = g.userData.center;
+    // spread grows with distance from the hub, plus a push so pieces near the middle still separate
+    const dx = c.x - HUB.x, dz = c.z - HUB.z;
+    g.position.set(dx * 1.3 + 0.09 * Math.tanh(dx / 0.03), (c.y - HUB.y) * 0.35, dz * 2 + 0.07 * Math.tanh(dz / 0.03)).multiplyScalar(explodeNow);
+  }
+  // step back as the pieces spread so the whole plate stays in view
+  const off = camera.position.clone().sub(controls.target).multiplyScalar(zoomOut(explodeNow) / zoomOut(before));
+  controls.target.y = -0.12 * explodeNow;
+  camera.position.copy(controls.target).add(off);
+}
+
+// ---------- camera views ----------
+let tween = null;
+function goView(name) {
+  const az = { front: 0, back: Math.PI, side: Math.PI / 2 }[name];
+  const d = camera.position.distanceTo(controls.target);
+  const from = camera.position.clone().sub(controls.target);
+  const start = Math.atan2(from.x, from.z);
+  let delta = az - start; delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+  const y0 = from.y, t0 = performance.now();
+  tween = now => {
+    const t = Math.min(1, (now - t0) / 700), e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    const a = start + delta * e, y = y0 * (1 - e), r = Math.sqrt(Math.max(d * d - y * y, 0.01));
+    camera.position.set(controls.target.x + r * Math.sin(a), controls.target.y + y, controls.target.z + r * Math.cos(a));
+    if (t === 1) tween = null;
+  };
+}
+
+function fit() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H; camera.updateProjectionMatrix();
+  const col = labelBox.firstElementChild?.offsetWidth || 150;
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const figW = Math.max(W - 2 * col, W * 0.35) / H;
+  const d = Math.max(0.98 / t, 0.42 / (t * figW)) * zoomOut(explodeNow);
+  camera.position.copy(camera.position.clone().sub(controls.target).setLength(d).add(controls.target));
+}
+
+// ---------- picking ----------
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+let down = null;
+canvas.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+canvas.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  const r = canvas.getBoundingClientRect();
+  ptr.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  // see-through layers let clicks pass to what is inside
+  const targets = groups.filter(g => g.visible && g.userData.mesh.material.opacity === 1).map(g => g.userData.mesh);
+  const hit = ray.intersectObjects(targets, false)[0];
+  select(hit ? hit.object.userData.part.id : null);
+});
+
+// ---------- UI ----------
+function select(id) {
+  state.selected = id === state.selected ? null : id;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  applyState();
+}
+function renderUI() {
+  const t = UI[state.lang], L = state.lang;
+  document.documentElement.lang = L;
+  document.title = t.title;
+  $('title').textContent = t.title; $('subtitle').textContent = t.subtitle;
+  $('lblTogether').textContent = t.together; $('lblApart').textContent = t.apart;
+  $('vFront').textContent = t.front; $('vBack').textContent = t.back; $('vSide').textContent = t.side;
+  $('toggleNames').textContent = t.names; $('toggleNames').setAttribute('aria-pressed', state.names);
+  $('speakLabel').textContent = t.listen; $('wikiLabel').textContent = t.wiki;
+  $('cardClose').setAttribute('aria-label', t.close);
+  $('status').textContent = t.loading;
+  $('credits').innerHTML = t.credits;
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === L));
+  const nav = $('layers');
+  if (!nav.children.length) for (const l of LAYERS) {
+    const b = document.createElement('button'); b.className = 'layer'; b.dataset.layer = l.id;
+    b.innerHTML = `<span class="sw" style="background:${l.color}"></span><span></span>`;
+    b.addEventListener('click', () => {
+      state.layers.has(l.id) ? state.layers.delete(l.id) : state.layers.add(l.id);
+      if (state.selected && !visible(byId.get(state.selected))) state.selected = null;
+      applyState();
+    });
+    nav.append(b);
+  }
+  for (const b of nav.children) {
+    const l = LAYERS.find(x => x.id === b.dataset.layer);
+    b.lastChild.textContent = l[L]; b.setAttribute('aria-pressed', state.layers.has(l.id));
+  }
+  for (const [id, el] of labelEls) el.b.textContent = byId.get(id)[L].name;
+  for (const p of parts) if (p[L]) labelEl(p).b.textContent = p[L].name;
+  const p = state.selected && byId.get(state.selected), card = $('card');
+  card.hidden = !p;
+  if (p) {
+    const txt = p[L];
+    $('cardLayer').textContent = p.layers.map(id => LAYERS.find(l => l.id === id)[L]).join(' · ');
+    $('cardName').textContent = txt.name;
+    $('cardText').textContent = txt.text;
+    $('cardFact').hidden = !txt.fact;
+    $('cardFact').innerHTML = txt.fact ? `<b>${t.fact}</b> ` : '';
+    if (txt.fact) $('cardFact').append(txt.fact);
+    $('wiki').href = `https://${L}.wikipedia.org/wiki/${encodeURIComponent(txt.wiki.replaceAll(' ', '_'))}`;
+  }
+}
+
+function speak() {
+  const p = byId.get(state.selected); if (!p) return;
+  const txt = p[state.lang], u = new SpeechSynthesisUtterance([txt.name, txt.text, txt.fact].filter(Boolean).join('. '));
+  u.lang = state.lang === 'fr' ? 'fr-FR' : 'en-GB';
+  const voice = speechSynthesis.getVoices().find(v => v.lang.replace('_', '-').startsWith(state.lang));
+  if (voice) u.voice = voice;
+  u.rate = 0.92;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+if (!('speechSynthesis' in window)) $('speak').hidden = true;
+$('speak').addEventListener('click', speak);
+$('cardClose').addEventListener('click', () => select(null));
+document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => {
+  state.lang = b.dataset.lang; store.set('lang', state.lang); if ('speechSynthesis' in window) speechSynthesis.cancel(); renderUI();
+}));
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
+$('toggleNames').addEventListener('click', () => { state.names = !state.names; renderUI(); });
+$('explode').addEventListener('input', e => { state.explode = e.target.value / 100; });
+addEventListener('keydown', e => { if (e.key === 'Escape') select(null); });
+
+new ResizeObserver(fit).observe(stage);
+renderer.setAnimationLoop(now => {
+  if (tween) tween(now);
+  controls.update();
+  placeGroups();
+  outlineW.value = camera.position.distanceTo(controls.target) * 0.0011;
+  renderer.render(scene, camera);
+  layoutLabels();
+});
+
+renderUI();
+load().catch(err => { console.error(err); $('status').textContent = UI[state.lang].error; });
