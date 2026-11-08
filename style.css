@@ -11,6 +11,7 @@
   --caps: 'IM Fell English SC', 'IM Fell English', Georgia, serif;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
 body {
   display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
