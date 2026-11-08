@@ -239,8 +239,9 @@ for (const g of groups) {
   const v = new Float32Array(g.pos.length);
   for (let i = 0; i < g.pos.length; i += 3) v.set(toThree(g.pos[i], g.pos[i + 1], g.pos[i + 2]), i);
   let idx = new Uint32Array(g.idx);
-  const budget = g.part === 'skin' ? 60000 : Math.max(600, Math.min(9000, idx.length / 3 * 0.3));
-  if (idx.length / 3 > budget) [idx] = MeshoptSimplifier.simplify(idx, v, 3, Math.floor(budget) * 3, 0.01);
+  // keep full definition: only drop triangles whose removal moves the surface by less than half a millimetre
+  const budget = 0;
+  [idx] = MeshoptSimplifier.simplify(idx, v, 3, budget, 0.0005, ['ErrorAbsolute']);
   // drop vertices no longer referenced
   const remap = new Int32Array(v.length / 3).fill(-1), nv = [];
   const ni = idx.map(i => (remap[i] < 0 ? (remap[i] = nv.push(v[3 * i], v[3 * i + 1], v[3 * i + 2]) / 3 - 1) : remap[i]));

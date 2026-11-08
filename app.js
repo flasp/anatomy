@@ -54,13 +54,15 @@ controls.listenToKeyEvents(window);
 controls.enableDamping = true;
 controls.minDistance = 0.25;
 controls.maxDistance = 8;
-scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.6));
-const key = new THREE.DirectionalLight(0xffffff, 2.2);
-camera.add(key); key.position.set(-1.5, 2, 1); scene.add(camera); // light follows the viewer
+scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.4));
+const key = new THREE.DirectionalLight(0xfff8ee, 1.9);
+camera.add(key); key.position.set(-2.2, 2.2, 0.8); scene.add(camera); // light follows the viewer
 
-// three-tone ramp: flat, printed look
-const ramp = new THREE.DataTexture(new Uint8Array([110, 110, 110, 255, 185, 185, 185, 255, 255, 255, 255, 255]), 3, 1);
-ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+// soft light ramp with warm sepia shadows, like a hand-tinted engraving
+const ramp = new THREE.DataTexture(new Uint8Array([
+  105, 88, 72, 255, 150, 132, 112, 255, 192, 178, 158, 255, 226, 218, 204, 255, 246, 242, 234, 255, 255, 255, 255, 255,
+]), 6, 1);
+ramp.minFilter = ramp.magFilter = THREE.LinearFilter; ramp.needsUpdate = true;
 // ink outline (inverted hull), width follows zoom so it stays about one pixel
 const outlineW = { value: 0.003 };
 const inkMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, side: THREE.BackSide });
