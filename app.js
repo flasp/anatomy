@@ -16,12 +16,18 @@ const DEPTH = { bones: 0, organs: 1, nerves: 1, blood: 1, muscles: 2, skin: 3 };
 const SEE_THROUGH = { skin: 0.16, muscles: 0.4 };
 const COLORS = {
   skin: '#e6c7a2', brain: '#d9a39b', eyes: '#f1ebdc', optic_nerves: '#d4ac2a', trachea: '#e3c9ad', esophagus: '#c98a7a',
-  heart: '#a8322a', lungs: '#d98f88', liver: '#7f3424', stomach: '#c98468', small_intestine: '#dba27c',
-  large_intestine: '#c4845d', kidneys: '#8f3a2c', bladder: '#d9b860', teeth: '#f5f0e2',
+  heart: '#a3261d', lungs: '#d7837c', liver: '#74291b', stomach: '#c96f4f', small_intestine: '#e39a70',
+  large_intestine: '#a3532f', kidneys: '#86301f', bladder: '#d6ac45', teeth: '#f5f0e2',
   aorta: '#b22a22', arteries: '#b22a22', venae_cavae: '#4a6a8a', veins: '#4a6a8a',
   spinal_cord: '#e0c060', arm_nerves: '#d4ac2a', sciatic_nerve: '#d4ac2a',
 };
-const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#b5432f' };
+const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#c9442a' };
+// per layer: tint = how much neighbouring elements differ, rim = how dark the edges get, stripes = muscle fibres
+const LOOK = {
+  muscles: { tint: 0.16, rim: 0.55, stripes: 1 }, organs: { tint: 0.07, rim: 0.5, stripes: 0 },
+  bones: { tint: 0.05, rim: 0.6, stripes: 0 }, blood: { tint: 0, rim: 0.55, stripes: 0 },
+  nerves: { tint: 0, rim: 0.6, stripes: 0 }, skin: { tint: 0, rim: 0.78, stripes: 0 },
+};
 const UI = {
   fr: { title: 'Le corps humain', subtitle: 'Planche anatomique à explorer', together: 'Rassemblé', apart: 'Éclaté',
     front: 'Face', back: 'Dos', side: 'Profil', recenter: 'Recentrer',
@@ -54,13 +60,42 @@ controls.listenToKeyEvents(window);
 controls.enableDamping = true;
 controls.minDistance = 0.25;
 controls.maxDistance = 8;
-scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.6));
-const key = new THREE.DirectionalLight(0xffffff, 2.2);
-camera.add(key); key.position.set(-1.5, 2, 1); scene.add(camera); // light follows the viewer
+scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.15));
+const key = new THREE.DirectionalLight(0xfff8ee, 1.7);
+camera.add(key); key.position.set(-2.2, 2.2, 0.8); scene.add(camera); // light follows the viewer
 
-// three-tone ramp: flat, printed look
-const ramp = new THREE.DataTexture(new Uint8Array([110, 110, 110, 255, 185, 185, 185, 255, 255, 255, 255, 255]), 3, 1);
-ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+// soft light ramp with warm sepia shadows, like a hand-tinted engraving
+const ramp = new THREE.DataTexture(new Uint8Array([
+  105, 88, 72, 255, 150, 132, 112, 255, 192, 178, 158, 255, 226, 218, 204, 255, 246, 242, 234, 255, 255, 255, 255, 255,
+]), 6, 1);
+ramp.minFilter = ramp.magFilter = THREE.LinearFilter; ramp.needsUpdate = true;
+// Engraving touches on top of the toon shading, driven by the per-element `look` attribute (see tools/build-model.mjs):
+// each element gets its own slight tint, edges darken towards the silhouette, muscles get fibre striations.
+function engrave(mat, look) {
+  mat.onBeforeCompile = s => {
+    Object.assign(s.uniforms, { uTint: { value: look.tint }, uRim: { value: look.rim }, uStripes: { value: look.stripes } });
+    const shared = 'varying vec4 vLook;\nvarying vec3 vObjPos;\nvarying vec3 vObjNormal;\n';
+    s.vertexShader = 'attribute vec4 look;\n' + shared +
+      s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLook = look; vObjPos = position; vObjNormal = normal;');
+    s.fragmentShader = 'uniform float uTint, uRim, uStripes;\n' + shared +
+      s.fragmentShader
+        .replace('#include <color_fragment>', `#include <color_fragment>
+          diffuseColor.rgb *= 1.0 + uTint * (vLook.a - 0.5) * 2.0;
+          if (uStripes > 0.0) {
+            // lines along the fibre axis, about 3 mm apart, fading out when they get thinner than a pixel
+            vec3 f = normalize(vLook.rgb * 2.0 - 1.0);
+            vec3 u = normalize(cross(f, abs(f.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), w = cross(f, u);
+            float a = dot(vObjPos, u) * 2100.0, b = dot(vObjPos, w) * 2100.0;
+            float st = mix(sin(a), sin(b), abs(dot(normalize(vObjNormal), u)));
+            float fade = 1.0 - smoothstep(0.7, 1.8, max(fwidth(a), fwidth(b)));
+            diffuseColor.rgb *= 1.0 - uStripes * fade * (0.5 + 0.5 * st) * 0.24;
+          }`)
+        .replace('#include <opaque_fragment>', `outgoingLight *= mix(uRim, 1.0, smoothstep(0.05, 0.75, abs(dot(normalize(normal), normalize(vViewPosition)))));
+          #include <opaque_fragment>`);
+  };
+  mat.customProgramCacheKey = () => 'engrave';
+}
+
 // ink outline (inverted hull), width follows zoom so it stays about one pixel
 const outlineW = { value: 0.003 };
 const inkMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, side: THREE.BackSide });
@@ -124,10 +159,12 @@ async function load() {
     for (let i = 0; i < q.count; i++) v.fromBufferAttribute(q, i).applyMatrix4(o.matrixWorld).toArray(f, i * 3);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(f, 3)); geo.setIndex(o.geometry.index);
+    geo.setAttribute('look', o.geometry.attributes.color);
     geo.computeVertexNormals(); geo.computeBoundingBox();
     const isSkin = id === 'skin';
     const base = new THREE.Color(COLORS[id] || LAYER_COLOR[part.layers[0]] || '#cccccc');
     const mat = new THREE.MeshToonMaterial({ color: base.clone(), gradientMap: ramp });
+    engrave(mat, LOOK[part.layers[0]]);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.userData.part = part;
     const g = new THREE.Group(); g.add(mesh);
@@ -437,7 +474,7 @@ renderer.setAnimationLoop(now => {
   controls.update();
   keepInBounds();
   placeGroups();
-  outlineW.value = camera.position.distanceTo(controls.target) * 0.0011;
+  outlineW.value = camera.position.distanceTo(controls.target) * 0.0015;
   renderer.render(scene, camera);
   layoutLabels();
 });
