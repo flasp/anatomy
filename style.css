@@ -82,6 +82,7 @@ h1 { font-family: var(--caps); font-weight: 400; font-size: clamp(26px, 4.4vw, 4
 .explode { display: flex; align-items: center; gap: 10px; flex: 1 1 280px; font-style: italic; font-size: 16px; }
 .explode input { flex: 1; accent-color: var(--sepia); min-height: 32px; }
 .views { display: flex; gap: 6px; flex-wrap: wrap; }
+.hint { margin: 0; padding: 0 16px; font-size: 13px; font-style: italic; color: var(--ink-soft); }
 .credits { padding: 2px 16px 8px; font-size: 12px; color: var(--ink-soft); }
 .credits a { color: var(--ink); }
 
