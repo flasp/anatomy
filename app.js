@@ -20,6 +20,9 @@ const COLORS = {
   large_intestine: '#a3532f', kidneys: '#86301f', bladder: '#d6ac45', teeth: '#f5f0e2',
   aorta: '#b22a22', arteries: '#b22a22', venae_cavae: '#4a6a8a', veins: '#4a6a8a',
   spinal_cord: '#e0c060', arm_nerves: '#d4ac2a', sciatic_nerve: '#d4ac2a',
+  // oxygen-rich left heart in red, oxygen-poor right heart in blue, as in school diagrams
+  left_atrium: '#c22a1f', left_ventricle: '#a81e16', right_atrium: '#4f6f96', right_ventricle: '#3e5f87',
+  cerebellum: '#c4847e', bronchi: '#efd6c8', costal_cartilage: '#c9dde4', pancreas: '#e2ad72', gallbladder: '#6e8b3d', tongue: '#c75f57',
 };
 const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#c9442a' };
 // per layer: tint = how much neighbouring elements differ, rim = how dark the edges get, stripes = muscle fibres
@@ -191,7 +194,8 @@ function applyState() {
     const { part, mesh, base, hull } = g.userData;
     g.visible = visible(part);
     // a part shared by several layers takes the most opaque of its active layers
-    const op = Math.max(...part.layers.filter(l => state.layers.has(l)).map(opacityOf), 0);
+    // `glass` parts (heart wall, lungs) always stay see-through to show what is inside
+    const op = Math.min(part.glass ?? 1, Math.max(...part.layers.filter(l => state.layers.has(l)).map(opacityOf), 0));
     const m = mesh.material;
     m.opacity = op; m.transparent = op < 1; m.depthWrite = op === 1;
     if (hull) hull.visible = op === 1;

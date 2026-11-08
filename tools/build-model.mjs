@@ -227,8 +227,9 @@ for (const p of parts) {
     for (const [name, fs_] of conceptFiles) if (p.bp3d?.some(r => full(r).test(name))) fs_.forEach(f => files.add(f));
     if (p.leaf) for (const f of fileConcepts.keys()) if (p.leaf.some(r => full(r).test(leafOf(f)))) files.add(f);
     for (const f of files) {
-      if (claimed.has(f) || (only && ![...fileConcepts.get(f)].some(n => only.test(n)))) continue;
-      claimed.add(f);
+      // an envelope (blob) may wrap elements already shown by another part, e.g. lungs around the bronchi
+      if ((claimed.has(f) && !p.blob) || (only && ![...fileConcepts.get(f)].some(n => only.test(n)))) continue;
+      if (!p.blob) claimed.add(f);
       meshes.push({ file: f, ...readObj(f) });
     }
     if (!meshes.length) throw new Error(`part ${p.id}: nothing selected`);
