@@ -24,11 +24,13 @@ const COLORS = {
 const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#b5432f' };
 const UI = {
   fr: { title: 'Le corps humain', subtitle: 'Planche anatomique à explorer', together: 'Rassemblé', apart: 'Éclaté',
-    front: 'Face', back: 'Dos', side: 'Profil', names: 'Noms', listen: 'Écouter', wiki: 'Wikipédia', hide: 'Masquer', undo: 'Annuler', showAll: n => `Tout réafficher (${n})`, fact: 'Le savais-tu ?',
+    front: 'Face', back: 'Dos', side: 'Profil', recenter: 'Recentrer',
+    hint: 'Glisser : tourner · Clic droit, deux doigts ou flèches : déplacer · Molette ou pincer : zoomer · Double-clic : s’approcher', names: 'Noms', listen: 'Écouter', wiki: 'Wikipédia', hide: 'Masquer', undo: 'Annuler', showAll: n => `Tout réafficher (${n})`, fact: 'Le savais-tu ?',
     loading: 'Chargement du corps…', error: 'Le corps n’a pas pu être chargé. Recharge la page.', close: 'Fermer',
     credits: 'Modèles 3D : <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, licence CC BY 4.0. Moelle épinière et nerfs des membres tracés d’après l’anatomie. Pour aller plus loin : <a href="https://fr.wikipedia.org/wiki/Anatomie_humaine" target="_blank" rel="noopener">Anatomie humaine</a>.' },
   en: { title: 'The human body', subtitle: 'An anatomy plate to explore', together: 'Together', apart: 'Exploded',
-    front: 'Front', back: 'Back', side: 'Side', names: 'Names', listen: 'Listen', wiki: 'Wikipedia', hide: 'Hide', undo: 'Undo', showAll: n => `Show all (${n})`, fact: 'Did you know?',
+    front: 'Front', back: 'Back', side: 'Side', recenter: 'Recenter',
+    hint: 'Drag: turn · Right-click, two fingers or arrow keys: move · Wheel or pinch: zoom · Double-click: fly in', names: 'Names', listen: 'Listen', wiki: 'Wikipedia', hide: 'Hide', undo: 'Undo', showAll: n => `Show all (${n})`, fact: 'Did you know?',
     loading: 'Loading the body…', error: 'The body could not be loaded. Please reload the page.', close: 'Close',
     credits: '3D models: <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, CC BY 4.0 licence. Spinal cord and limb nerves drawn from anatomy references. Learn more: <a href="https://en.wikipedia.org/wiki/Human_body" target="_blank" rel="noopener">Human body</a>.' },
 };
@@ -45,9 +47,12 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
 camera.position.set(0, 0, 4.5);
 const controls = new OrbitControls(camera, canvas);
-controls.enablePan = false;
+// left drag turns, right drag / two fingers / arrow keys move up-down-left-right, wheel / pinch zooms where you point
+controls.enablePan = true;
+controls.zoomToCursor = true;
+controls.listenToKeyEvents(window);
 controls.enableDamping = true;
-controls.minDistance = 0.6;
+controls.minDistance = 0.25;
 controls.maxDistance = 8;
 scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.6));
 const key = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -199,7 +204,8 @@ function layoutLabels() {
     }
     if (!anchor) { el.b.style.display = 'none'; el.path.style.display = el.dot.style.display = 'none'; continue; }
     const s = anchor.clone().project(camera);
-    if (s.z > 1) { el.b.style.display = 'none'; el.path.style.display = el.dot.style.display = 'none'; continue; }
+    // off-screen once zoomed in: no label pointing into the void
+    if (s.z > 1 || Math.abs(s.x) > 1 || Math.abs(s.y) > 1) { el.b.style.display = 'none'; el.path.style.display = el.dot.style.display = 'none'; continue; }
     items.push({ p, el, x: (s.x + 1) / 2 * W, y: (1 - s.y) / 2 * H });
   }
   // label columns hug the figure, like on a printed plate
@@ -253,7 +259,7 @@ function placeGroups() {
   }
   // step back as the pieces spread so the whole plate stays in view
   const off = camera.position.clone().sub(controls.target).multiplyScalar(zoomOut(explodeNow) / zoomOut(before));
-  controls.target.y = -0.12 * explodeNow;
+  controls.target.y -= 0.12 * (explodeNow - before);
   camera.position.copy(controls.target).add(off);
 }
 
@@ -274,30 +280,63 @@ function goView(name) {
   };
 }
 
+// smooth camera move to look at `target` from `distance`, keeping the viewing direction unless one is given
+function flyTo(target, distance, dir = camera.position.clone().sub(controls.target).normalize()) {
+  const t0 = performance.now(), fromT = controls.target.clone(), fromP = camera.position.clone();
+  const toP = target.clone().addScaledVector(dir, distance);
+  tween = now => {
+    const t = Math.min(1, (now - t0) / 600), e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    controls.target.lerpVectors(fromT, target, e);
+    camera.position.lerpVectors(fromP, toP, e);
+    if (t === 1) tween = null;
+  };
+}
+function fitDistance() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const col = labelBox.firstElementChild?.offsetWidth || 150;
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const figW = Math.max(W - 2 * col, W * 0.35) / H;
+  return Math.max(0.98 / t, 0.42 / (t * figW)) * zoomOut(explodeNow);
+}
+const home = () => new THREE.Vector3(0, -0.12 * explodeNow, 0);
+let fitted = false;
 function fit() {
   const W = stage.clientWidth, H = stage.clientHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H; camera.updateProjectionMatrix();
-  const col = labelBox.firstElementChild?.offsetWidth || 150;
-  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const figW = Math.max(W - 2 * col, W * 0.35) / H;
-  const d = Math.max(0.98 / t, 0.42 / (t * figW)) * zoomOut(explodeNow);
-  camera.position.copy(camera.position.clone().sub(controls.target).setLength(d).add(controls.target));
+  // frame the whole body once; later resizes keep the user's zoom and position
+  if (!fitted && W && H) { fitted = true; controls.target.copy(home()); camera.position.set(0, home().y, fitDistance()); }
+}
+// keep the point of interest near the body so nobody gets lost in empty space
+const BOUNDS = new THREE.Box3(new THREE.Vector3(-0.7, -1.4, -0.6), new THREE.Vector3(0.7, 1.2, 0.6));
+function keepInBounds() {
+  const clamped = controls.target.clone().clamp(BOUNDS.min, BOUNDS.max);
+  if (clamped.equals(controls.target)) return;
+  camera.position.add(clamped.clone().sub(controls.target));
+  controls.target.copy(clamped);
 }
 
 // ---------- picking ----------
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
 let down = null;
 canvas.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+let lastTap = { t: 0, x: 0, y: 0 };
 canvas.addEventListener('pointerup', e => {
-  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6 || e.button !== 0) return;
   const r = canvas.getBoundingClientRect();
   ptr.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ptr, camera);
   // see-through layers let clicks pass to what is inside
   const targets = groups.filter(g => g.visible && g.userData.mesh.material.opacity === 1).map(g => g.userData.mesh);
-  const hit = ray.intersectObjects(targets, false)[0];
-  select(hit ? hit.object.userData.part.id : null);
+  const hit = ray.intersectObjects(targets, false)[0], id = hit?.object.userData.part.id ?? null;
+  // double click / double tap: fly in close to that spot
+  const now = performance.now(), dbl = now - lastTap.t < 350 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 25;
+  lastTap = dbl ? { t: 0, x: 0, y: 0 } : { t: now, x: e.clientX, y: e.clientY };
+  if (dbl) {
+    if (hit) { flyTo(hit.point, 0.6); if (state.selected !== id) select(id); }
+    return;
+  }
+  select(id);
 });
 
 // ---------- UI ----------
@@ -325,6 +364,7 @@ function renderUI() {
   $('title').textContent = t.title; $('subtitle').textContent = t.subtitle;
   $('lblTogether').textContent = t.together; $('lblApart').textContent = t.apart;
   $('vFront').textContent = t.front; $('vBack').textContent = t.back; $('vSide').textContent = t.side;
+  $('recenter').textContent = t.recenter; $('hint').textContent = t.hint;
   $('toggleNames').textContent = t.names; $('toggleNames').setAttribute('aria-pressed', state.names);
   $('speakLabel').textContent = t.listen; $('wikiLabel').textContent = t.wiki; $('hideLabel').textContent = t.hide;
   $('undoLabel').textContent = t.undo; $('showAll').textContent = t.showAll(state.hidden.length);
@@ -383,6 +423,7 @@ document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click
   state.lang = b.dataset.lang; store.set('lang', state.lang); if ('speechSynthesis' in window) speechSynthesis.cancel(); renderUI();
 }));
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
+$('recenter').addEventListener('click', () => flyTo(home(), fitDistance(), new THREE.Vector3(0, 0, 1)));
 $('toggleNames').addEventListener('click', () => { state.names = !state.names; renderUI(); });
 $('explode').addEventListener('input', e => { state.explode = e.target.value / 100; });
 addEventListener('keydown', e => {
@@ -394,6 +435,7 @@ new ResizeObserver(fit).observe(stage);
 renderer.setAnimationLoop(now => {
   if (tween) tween(now);
   controls.update();
+  keepInBounds();
   placeGroups();
   outlineW.value = camera.position.distanceTo(controls.target) * 0.0011;
   renderer.render(scene, camera);
