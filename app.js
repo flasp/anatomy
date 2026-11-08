@@ -24,18 +24,18 @@ const COLORS = {
 const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#b5432f' };
 const UI = {
   fr: { title: 'Le corps humain', subtitle: 'Planche anatomique à explorer', together: 'Rassemblé', apart: 'Éclaté',
-    front: 'Face', back: 'Dos', side: 'Profil', names: 'Noms', listen: 'Écouter', wiki: 'Wikipédia', fact: 'Le savais-tu ?',
+    front: 'Face', back: 'Dos', side: 'Profil', names: 'Noms', listen: 'Écouter', wiki: 'Wikipédia', hide: 'Masquer', undo: 'Annuler', showAll: n => `Tout réafficher (${n})`, fact: 'Le savais-tu ?',
     loading: 'Chargement du corps…', error: 'Le corps n’a pas pu être chargé. Recharge la page.', close: 'Fermer',
     credits: 'Modèles 3D : <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, licence CC BY 4.0. Moelle épinière et nerfs des membres tracés d’après l’anatomie. Pour aller plus loin : <a href="https://fr.wikipedia.org/wiki/Anatomie_humaine" target="_blank" rel="noopener">Anatomie humaine</a>.' },
   en: { title: 'The human body', subtitle: 'An anatomy plate to explore', together: 'Together', apart: 'Exploded',
-    front: 'Front', back: 'Back', side: 'Side', names: 'Names', listen: 'Listen', wiki: 'Wikipedia', fact: 'Did you know?',
+    front: 'Front', back: 'Back', side: 'Side', names: 'Names', listen: 'Listen', wiki: 'Wikipedia', hide: 'Hide', undo: 'Undo', showAll: n => `Show all (${n})`, fact: 'Did you know?',
     loading: 'Loading the body…', error: 'The body could not be loaded. Please reload the page.', close: 'Close',
     credits: '3D models: <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, CC BY 4.0 licence. Spinal cord and limb nerves drawn from anatomy references. Learn more: <a href="https://en.wikipedia.org/wiki/Human_body" target="_blank" rel="noopener">Human body</a>.' },
 };
 
 const $ = id => document.getElementById(id);
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
-const state = { lang: store.get('lang') === 'en' ? 'en' : 'fr', layers: new Set(['skin', 'organs']), explode: 0, selected: null, names: true };
+const state = { lang: store.get('lang') === 'en' ? 'en' : 'fr', layers: new Set(['skin', 'organs']), explode: 0, selected: null, names: true, hidden: [] };
 
 // ---------- 3D scene ----------
 const stage = $('stage'), canvas = $('view');
@@ -138,7 +138,8 @@ async function load() {
 }
 
 // ---------- state → scene ----------
-const visible = p => p.layers.some(l => state.layers.has(l));
+// state.hidden is ordered: the last hidden part is the first one undo brings back
+const visible = p => p.layers.some(l => state.layers.has(l)) && !state.hidden.includes(p.id);
 function opacityOf(layer) {
   const deeper = [...state.layers].some(l => DEPTH[l] < DEPTH[layer]);
   return deeper && SEE_THROUGH[layer] ? SEE_THROUGH[layer] : 1;
@@ -305,6 +306,18 @@ function select(id) {
   if ('speechSynthesis' in window) speechSynthesis.cancel();
   applyState();
 }
+function hidePart() {
+  if (!state.selected) return;
+  state.hidden.push(state.selected);
+  select(null);
+}
+function undoHide() {
+  if (state.hidden.pop()) applyState();
+}
+function showAll() {
+  state.hidden = [];
+  applyState();
+}
 function renderUI() {
   const t = UI[state.lang], L = state.lang;
   document.documentElement.lang = L;
@@ -313,7 +326,9 @@ function renderUI() {
   $('lblTogether').textContent = t.together; $('lblApart').textContent = t.apart;
   $('vFront').textContent = t.front; $('vBack').textContent = t.back; $('vSide').textContent = t.side;
   $('toggleNames').textContent = t.names; $('toggleNames').setAttribute('aria-pressed', state.names);
-  $('speakLabel').textContent = t.listen; $('wikiLabel').textContent = t.wiki;
+  $('speakLabel').textContent = t.listen; $('wikiLabel').textContent = t.wiki; $('hideLabel').textContent = t.hide;
+  $('undoLabel').textContent = t.undo; $('showAll').textContent = t.showAll(state.hidden.length);
+  $('undo').hidden = $('showAll').hidden = !state.hidden.length;
   $('cardClose').setAttribute('aria-label', t.close);
   $('status').textContent = t.loading;
   $('credits').innerHTML = t.credits;
@@ -361,13 +376,19 @@ function speak() {
 if (!('speechSynthesis' in window)) $('speak').hidden = true;
 $('speak').addEventListener('click', speak);
 $('cardClose').addEventListener('click', () => select(null));
+$('hide').addEventListener('click', hidePart);
+$('undo').addEventListener('click', undoHide);
+$('showAll').addEventListener('click', showAll);
 document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => {
   state.lang = b.dataset.lang; store.set('lang', state.lang); if ('speechSynthesis' in window) speechSynthesis.cancel(); renderUI();
 }));
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
 $('toggleNames').addEventListener('click', () => { state.names = !state.names; renderUI(); });
 $('explode').addEventListener('input', e => { state.explode = e.target.value / 100; });
-addEventListener('keydown', e => { if (e.key === 'Escape') select(null); });
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') select(null);
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undoHide(); }
+});
 
 new ResizeObserver(fit).observe(stage);
 renderer.setAnimationLoop(now => {
