@@ -193,6 +193,30 @@ function tube(pts, radiusMm) {
 
 await MeshoptSimplifier.ready;
 await MeshoptEncoder.ready;
+
+// Per-element look, stored in COLOR_0: rgb = main axis of the element (muscle fibre direction, Three.js axes, 0..1),
+// a = a stable random value the app turns into a slight tint so neighbouring elements stand apart.
+const NEUTRAL = [0.5, 1, 0.5, 0.5];
+// `fibre` (optional, Three.js axes, body's right side) overrides the guessed axis for fan-shaped muscles.
+function elementLook(m, key, fibre) {
+  const n = m.pos.length / 3, c = [0, 0, 0];
+  for (let i = 0; i < m.pos.length; i += 3) for (let k = 0; k < 3; k++) c[k] += m.pos[i + k] / n;
+  const C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (let i = 0; i < m.pos.length; i += 3) {
+    const d = [0, 1, 2].map(k => m.pos[i + k] - c[k]);
+    for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) C[a][b] += d[a] * d[b];
+  }
+  let v = [0.3, 0.9, 0.2]; // power iteration: largest eigenvector of the covariance
+  for (let it = 0; it < 30; it++) {
+    const w = C.map(row => row[0] * v[0] + row[1] * v[1] + row[2] * v[2]), l = Math.hypot(...w) || 1;
+    v = w.map(x => x / l);
+  }
+  let axis = [v[0], v[2], -v[1]]; // BP3D -> Three.js axes
+  if (fibre) { const l = Math.hypot(...fibre), side = c[0] > 0 ? -1 : 1; axis = [side * fibre[0] / l, fibre[1] / l, fibre[2] / l]; }
+  let h = 2166136261; for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return [...axis.map(x => x * 0.5 + 0.5), (h >>> 0) / 2 ** 32];
+}
+
 const claimed = new Set();
 const groups = []; // {part, side, pos, idx}
 for (const p of parts) {
@@ -215,16 +239,21 @@ for (const p of parts) {
   }
   if (!meshes.length) continue; // label-only part (skin landmarks)
   const bySide = {};
-  for (const m of meshes) {
+  meshes.forEach((m, mi) => {
     let sx = 0; for (let i = 0; i < m.pos.length; i += 3) sx += m.pos[i];
     const s = p.noSplit ? 'C' : sideOf(sx / (m.pos.length / 3));
-    const g = (bySide[s] ||= { pos: [], idx: [] }), off = g.pos.length / 3;
+    const g = (bySide[s] ||= { pos: [], idx: [], look: [] }), off = g.pos.length / 3;
+    const look = elementLook(m, m.file || `${p.id}${mi}`, p.fibre);
     for (const v of m.pos) g.pos.push(v);
     for (const i of m.idx) g.idx.push(i + off);
-  }
+    for (let i = 0; i < m.pos.length / 3; i++) g.look.push(...look);
+  });
   for (const [side, g] of Object.entries(bySide)) {
     const out = p.id === 'skin' ? neuterSkin(g) : p.blob ? blob(g, p.blob) : g;
-    groups.push({ part: p.id, side, ...out });
+    // generated surfaces (skin cap, lung envelope) get the neutral look
+    const look = p.blob ? [] : g.look.slice();
+    while (look.length < out.pos.length / 3 * 4) look.push(...NEUTRAL);
+    groups.push({ part: p.id, side, pos: out.pos, idx: out.idx, look });
   }
   console.log(p.id.padEnd(14), meshes.length, 'meshes', Object.keys(bySide).join(''),
     dry && meshes[0].file ? [...new Set(meshes.map(m => leafOf(m.file)))].slice(0, 6).join(' | ') : '');
@@ -243,11 +272,15 @@ for (const g of groups) {
   const budget = 0;
   [idx] = MeshoptSimplifier.simplify(idx, v, 3, budget, 0.0005, ['ErrorAbsolute']);
   // drop vertices no longer referenced
-  const remap = new Int32Array(v.length / 3).fill(-1), nv = [];
-  const ni = idx.map(i => (remap[i] < 0 ? (remap[i] = nv.push(v[3 * i], v[3 * i + 1], v[3 * i + 2]) / 3 - 1) : remap[i]));
+  const remap = new Int32Array(v.length / 3).fill(-1), nv = [], nl = [];
+  const ni = idx.map(i => {
+    if (remap[i] < 0) { remap[i] = nv.push(v[3 * i], v[3 * i + 1], v[3 * i + 2]) / 3 - 1; for (let k = 0; k < 4; k++) nl.push(Math.round(g.look[4 * i + k] * 255)); }
+    return remap[i];
+  });
   tris += ni.length / 3;
   const prim = doc.createPrimitive()
     .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array(nv)).setBuffer(buffer))
+    .setAttribute('COLOR_0', doc.createAccessor().setType('VEC4').setArray(new Uint8Array(nl)).setNormalized(true).setBuffer(buffer))
     .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint32Array(ni)).setBuffer(buffer));
   const name = `${g.part}|${g.side}`;
   scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(prim)));
