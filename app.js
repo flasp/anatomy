@@ -107,6 +107,23 @@ function skinAnchor(geo, [X, Y, face]) {
 }
 
 // One model file per layer, fetched the first time one of its parts is shown. A part lives in the file of its first layer.
+// Close the open rims of a mesh with a fan of triangles from one rim vertex; returns the new index list.
+// shortcut: flat lids made in the browser, fine for the stomach's small round openings; cap them in tools/build-body.mjs at the next model rebuild
+function capHoles(index) {
+  const ix = Array.from(index), uses = new Map(), key = (a, b) => (a < b ? a + ',' + b : b + ',' + a);
+  for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) { const k = key(ix[t + e], ix[t + (e + 1) % 3]); uses.set(k, (uses.get(k) || 0) + 1); }
+  // an edge used by a single triangle is on a rim; rims are grouped by connectivity
+  const rim = [], root = new Map(), find = v => { while (root.get(v) !== v) v = root.get(v); return v; };
+  for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) {
+    const a = ix[t + e], b = ix[t + (e + 1) % 3];
+    if (uses.get(key(a, b)) !== 1) continue;
+    rim.push([a, b]);
+    for (const v of [a, b]) if (!root.has(v)) root.set(v, v);
+    root.set(find(a), find(b));
+  }
+  for (const [a, b] of rim) { const p = find(a); if (a !== p && b !== p) ix.push(b, a, p); }
+  return ix;
+}
 const files = new Set();
 let pending = 0, failed = false, arrived = false; // arrived: new pieces still have to take their exploded place
 function loadLayer(layer) {
@@ -122,7 +139,7 @@ function loadLayer(layer) {
       const q = o.geometry.attributes.position, f = new Float32Array(q.count * 3), v = new THREE.Vector3();
       for (let i = 0; i < q.count; i++) v.fromBufferAttribute(q, i).applyMatrix4(o.matrixWorld).toArray(f, i * 3);
       const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(f, 3)); geo.setIndex(o.geometry.index);
+      geo.setAttribute('position', new THREE.BufferAttribute(f, 3)); geo.setIndex(id === 'stomach' ? capHoles(o.geometry.index.array) : o.geometry.index);
       // vertex colours: the part colour, shaded a little per piece, or the colour of the class (tendon, cartilage, …)
       const src = o.geometry.attributes.color, col = new Float32Array(q.count * 3), c = new THREE.Color();
       const base = new THREE.Color(COLORS[id] || LAYER_COLOR[part.layers[0]] || '#cccccc'), amp = SHADE[part.layers[0]] || 0;
@@ -132,8 +149,7 @@ function loadLayer(layer) {
       }
       geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
       geo.computeVertexNormals(); geo.computeBoundingBox();
-      // the stomach mesh is open at its ends: draw its inner wall too, or the openings look like holes
-      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: layer === 'skin' ? 0.65 : 0.5, side: id === 'stomach' ? THREE.DoubleSide : THREE.FrontSide }));
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: layer === 'skin' ? 0.65 : 0.5 }));
       mesh.userData.part = part;
       const g = new THREE.Group(); g.add(mesh);
       const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
