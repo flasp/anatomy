@@ -2,46 +2,46 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const LAYERS = [
-  { id: 'skin', fr: 'Aspect extérieur', en: 'Outside', color: '#e6c7a2' },
-  { id: 'muscles', fr: 'Muscles', en: 'Muscles', color: '#b5432f' },
-  { id: 'blood', fr: 'Sang', en: 'Blood', color: '#b22a22' },
-  { id: 'nerves', fr: 'Nerfs', en: 'Nerves', color: '#d4ac2a' },
-  { id: 'organs', fr: 'Organes', en: 'Organs', color: '#c98468' },
-  { id: 'bones', fr: 'Os', en: 'Bones', color: '#ebdfc4' },
+  { id: 'skin', fr: 'Aspect extérieur', en: 'Outside', icon: '🧍' },
+  { id: 'muscles', fr: 'Muscles', en: 'Muscles', icon: '💪' },
+  { id: 'blood', fr: 'Sang', en: 'Blood', icon: '🩸' },
+  { id: 'nerves', fr: 'Nerfs', en: 'Nerves', icon: '⚡' },
+  { id: 'organs', fr: 'Organes', en: 'Organs', icon: '🧠' },
+  { id: 'bones', fr: 'Os', en: 'Bones', icon: '🦴' },
 ];
 // how deep each layer sits: an outer layer turns see-through when a deeper one is shown
 const DEPTH = { bones: 0, organs: 1, nerves: 1, blood: 1, muscles: 2, skin: 3 };
-const SEE_THROUGH = { skin: 0.16, muscles: 0.4 };
+const SEE_THROUGH = { skin: 0.3, muscles: 0.4 };
 const COLORS = {
-  skin: '#e6c7a2', brain: '#d9a39b', eyes: '#f1ebdc', optic_nerves: '#d4ac2a', trachea: '#e3c9ad', esophagus: '#c98a7a',
-  heart: '#a3261d', lungs: '#d7837c', liver: '#74291b', stomach: '#c96f4f', small_intestine: '#e39a70',
-  large_intestine: '#a3532f', kidneys: '#86301f', bladder: '#d6ac45', teeth: '#f5f0e2',
-  aorta: '#b22a22', arteries: '#b22a22', venae_cavae: '#4a6a8a', veins: '#4a6a8a',
-  spinal_cord: '#e0c060', arm_nerves: '#d4ac2a', sciatic_nerve: '#d4ac2a',
-  // oxygen-rich left heart in red, oxygen-poor right heart in blue, as in school diagrams
-  left_atrium: '#c22a1f', left_ventricle: '#a81e16', right_atrium: '#4f6f96', right_ventricle: '#3e5f87',
-  cerebellum: '#c4847e', bronchi: '#efd6c8', costal_cartilage: '#c9dde4', pancreas: '#e2ad72', gallbladder: '#6e8b3d', tongue: '#c75f57',
+  skin: '#f3c7a6', brain: '#f4a9b4', cerebellum: '#e88a9a', optic_nerves: '#f5c518', trachea: '#f0d9c4', bronchi: '#f5e1d3',
+  esophagus: '#e79a86', pharynx: '#f0a79a', larynx: '#cfe6ee', thyroid: '#d9774a', lungs: '#f5a3b1', liver: '#a8452f',
+  stomach: '#f08a7a', small_intestine: '#f8b48e', large_intestine: '#d98263', kidneys: '#b5483a', ureters: '#f0d58a',
+  bladder: '#f2cf5b', pancreas: '#f3c26b', gallbladder: '#7fb24a', spleen: '#93406a', tongue: '#f0707a',
+  teeth: '#ffffff', costal_cartilage: '#cfe6ee',
+  // the heart stays red all over (its right side a shade more purple): seen from the front, a blue right side made the whole heart look blue
+  heart: '#d6322c', left_atrium: '#e03c31', left_ventricle: '#c92d25', right_atrium: '#c43c62', right_ventricle: '#b23058',
+  // oxygen-rich blood in red, oxygen-poor blood in blue, as in school diagrams
+  aorta: '#e03c31', arteries: '#e03c31', venae_cavae: '#3d6fd1', veins: '#3d6fd1',
 };
-const LAYER_COLOR = { bones: '#ebdfc4', muscles: '#c9442a' };
-// per layer: tint = how much neighbouring elements differ, rim = how dark the edges get, stripes = muscle fibres
-const LOOK = {
-  muscles: { tint: 0.16, rim: 0.55, stripes: 1 }, organs: { tint: 0.07, rim: 0.5, stripes: 0 },
-  bones: { tint: 0.05, rim: 0.6, stripes: 0 }, blood: { tint: 0, rim: 0.55, stripes: 0 },
-  nerves: { tint: 0, rim: 0.6, stripes: 0 }, skin: { tint: 0, rim: 0.78, stripes: 0 },
-};
+const LAYER_COLOR = { bones: '#f6eedc', muscles: '#e4544b', nerves: '#f5c518' };
+// colour classes written per vertex by tools/build-body.mjs; class 0 is the colour of the part
+const CLASS_COLOR = [null, '#fff1dc', '#cfe6ee', '#ffffff', '#6b4a2f', '#16181d', '#e03c31', '#3d6fd1'].map(c => c && new THREE.Color(c)); // tendon, cartilage, white, iris, pupil, artery, vein
+// how much the pieces of one part differ in shade, so that neighbours stay distinct
+const SHADE = { muscles: 0.14, organs: 0.05, bones: 0.04 };
 const UI = {
-  fr: { title: 'Le corps humain', subtitle: 'Planche anatomique à explorer', together: 'Rassemblé', apart: 'Éclaté',
+  fr: { title: 'Le corps humain', subtitle: 'Touche, tourne et découvre ce qu’il y a à l’intérieur !', together: 'Rassemblé', apart: 'Éclaté',
     front: 'Face', back: 'Dos', side: 'Profil', recenter: 'Recentrer',
     hint: 'Glisser : tourner · Clic droit, deux doigts ou flèches : déplacer · Molette ou pincer : zoomer · Double-clic : s’approcher', names: 'Noms', listen: 'Écouter', wiki: 'Wikipédia', hide: 'Masquer', undo: 'Annuler', showAll: n => `Tout réafficher (${n})`, fact: 'Le savais-tu ?',
     loading: 'Chargement du corps…', error: 'Le corps n’a pas pu être chargé. Recharge la page.', close: 'Fermer',
-    credits: 'Modèles 3D : <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, licence CC BY 4.0. Moelle épinière et nerfs des membres tracés d’après l’anatomie. Pour aller plus loin : <a href="https://fr.wikipedia.org/wiki/Anatomie_humaine" target="_blank" rel="noopener">Anatomie humaine</a>.' },
-  en: { title: 'The human body', subtitle: 'An anatomy plate to explore', together: 'Together', apart: 'Exploded',
+    credits: 'Modèles 3D : <a href="https://www.z-anatomy.com/" target="_blank" rel="noopener">Z-Anatomy</a>, l’atlas d’anatomie libre (CC BY-SA 4.0), d’après <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science (CC BY-SA 2.1 Japon). Modèles simplifiés et recolorés ici, partagés sous <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Pour aller plus loin : <a href="https://fr.wikipedia.org/wiki/Anatomie_humaine" target="_blank" rel="noopener">Anatomie humaine</a>.' },
+  en: { title: 'The human body', subtitle: 'Touch, turn and find out what is inside!', together: 'Together', apart: 'Exploded',
     front: 'Front', back: 'Back', side: 'Side', recenter: 'Recenter',
     hint: 'Drag: turn · Right-click, two fingers or arrow keys: move · Wheel or pinch: zoom · Double-click: fly in', names: 'Names', listen: 'Listen', wiki: 'Wikipedia', hide: 'Hide', undo: 'Undo', showAll: n => `Show all (${n})`, fact: 'Did you know?',
     loading: 'Loading the body…', error: 'The body could not be loaded. Please reload the page.', close: 'Close',
-    credits: '3D models: <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science, CC BY 4.0 licence. Spinal cord and limb nerves drawn from anatomy references. Learn more: <a href="https://en.wikipedia.org/wiki/Human_body" target="_blank" rel="noopener">Human body</a>.' },
+    credits: '3D models: <a href="https://www.z-anatomy.com/" target="_blank" rel="noopener">Z-Anatomy</a>, the open source atlas of anatomy (CC BY-SA 4.0), based on <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>, © The Database Center for Life Science (CC BY-SA 2.1 Japan). Models simplified and recoloured here, shared under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Learn more: <a href="https://en.wikipedia.org/wiki/Human_body" target="_blank" rel="noopener">Human body</a>.' },
 };
 
 const $ = id => document.getElementById(id);
@@ -52,7 +52,11 @@ const state = { lang: store.get('lang') === 'en' ? 'en' : 'fr', layers: new Set(
 const stage = $('stage'), canvas = $('view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.NeutralToneMapping;
 const scene = new THREE.Scene();
+// soft studio light from every side, so that shapes read like modelling clay
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.55;
 const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
 camera.position.set(0, 0, 4.5);
 const controls = new OrbitControls(camera, canvas);
@@ -63,53 +67,11 @@ controls.listenToKeyEvents(window);
 controls.enableDamping = true;
 controls.minDistance = 0.25;
 controls.maxDistance = 8;
-scene.add(new THREE.HemisphereLight(0xfff4e0, 0x8a6e4b, 1.15));
-const key = new THREE.DirectionalLight(0xfff8ee, 1.7);
-camera.add(key); key.position.set(-2.2, 2.2, 0.8); scene.add(camera); // light follows the viewer
-
-// soft light ramp with warm sepia shadows, like a hand-tinted engraving
-const ramp = new THREE.DataTexture(new Uint8Array([
-  105, 88, 72, 255, 150, 132, 112, 255, 192, 178, 158, 255, 226, 218, 204, 255, 246, 242, 234, 255, 255, 255, 255, 255,
-]), 6, 1);
-ramp.minFilter = ramp.magFilter = THREE.LinearFilter; ramp.needsUpdate = true;
-// Engraving touches on top of the toon shading, driven by the per-element `look` attribute (see tools/build-model.mjs):
-// each element gets its own slight tint, edges darken towards the silhouette, muscles get fibre striations.
-function engrave(mat, look) {
-  mat.onBeforeCompile = s => {
-    Object.assign(s.uniforms, { uTint: { value: look.tint }, uRim: { value: look.rim }, uStripes: { value: look.stripes } });
-    const shared = 'varying vec4 vLook;\nvarying vec3 vObjPos;\nvarying vec3 vObjNormal;\n';
-    s.vertexShader = 'attribute vec4 look;\n' + shared +
-      s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLook = look; vObjPos = position; vObjNormal = normal;');
-    s.fragmentShader = 'uniform float uTint, uRim, uStripes;\n' + shared +
-      s.fragmentShader
-        .replace('#include <color_fragment>', `#include <color_fragment>
-          diffuseColor.rgb *= 1.0 + uTint * (vLook.a - 0.5) * 2.0;
-          if (uStripes > 0.0) {
-            // lines along the fibre axis, about 3 mm apart, fading out when they get thinner than a pixel
-            vec3 f = normalize(vLook.rgb * 2.0 - 1.0);
-            vec3 u = normalize(cross(f, abs(f.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), w = cross(f, u);
-            float a = dot(vObjPos, u) * 2100.0, b = dot(vObjPos, w) * 2100.0;
-            float st = mix(sin(a), sin(b), abs(dot(normalize(vObjNormal), u)));
-            float fade = 1.0 - smoothstep(0.7, 1.8, max(fwidth(a), fwidth(b)));
-            diffuseColor.rgb *= 1.0 - uStripes * fade * (0.5 + 0.5 * st) * 0.24;
-          }`)
-        .replace('#include <opaque_fragment>', `outgoingLight *= mix(uRim, 1.0, smoothstep(0.05, 0.75, abs(dot(normalize(normal), normalize(vViewPosition)))));
-          #include <opaque_fragment>`);
-  };
-  mat.customProgramCacheKey = () => 'engrave';
-}
-
-// ink outline (inverted hull), width follows zoom so it stays about one pixel
-const outlineW = { value: 0.003 };
-const inkMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, side: THREE.BackSide });
-inkMat.onBeforeCompile = s => {
-  s.uniforms.outlineW = outlineW;
-  s.vertexShader = 'uniform float outlineW;\n' + s.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed = position + normal * outlineW;');
-};
+const key = new THREE.DirectionalLight(0xffffff, 2.2);
+camera.add(key); key.position.set(-1.5, 2, 2); scene.add(camera); // light follows the viewer
 
 const model = new THREE.Group(); scene.add(model);
 let parts = [], byId = new Map(), groups = []; // groups: one per part side, explode together
-const paper = new THREE.Color('#efe4cc');
 
 function anchorsFor(geo) {
   // surface points of the mesh seen from front, back, left and right
@@ -127,9 +89,9 @@ function anchorsFor(geo) {
   return dirs.map((d, k) => ({ dir: d, pos: best[k].v }));
 }
 
-function skinAnchor(geo, [x, z, face]) {
-  // nearest skin vertex to (x, z) on the requested face; coordinates in BodyParts3D millimetres
-  const X = x / 1000, Y = (z - 781.5) / 1000, p = geo.attributes.position, v = new THREE.Vector3();
+function skinAnchor(geo, [X, Y, face]) {
+  // nearest skin vertex to (X, Y) on the requested face; model coordinates in metres
+  const p = geo.attributes.position, v = new THREE.Vector3();
   const dir = { front: [0, 0, 1], back: [0, 0, -1], left: [1, 0, 0], right: [-1, 0, 0] }[face];
   const D = new THREE.Vector3(...dir);
   let best = null, bs = -Infinity;
@@ -144,42 +106,41 @@ function skinAnchor(geo, [x, z, face]) {
   return best && [{ dir: D, pos: best }];
 }
 
-async function load() {
-  const [data, gltf] = await Promise.all([
-    fetch('data/parts.json').then(r => r.json()),
-    new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('models/body.glb'),
-  ]);
-  parts = data.parts;
-  parts.forEach((p, i) => { p.index = i; p.groups = []; byId.set(p.id, p); });
-  let skinGeo = null;
-  gltf.scene.updateMatrixWorld(true);
-  gltf.scene.traverse(o => {
-    if (!o.isMesh) return;
-    const [id, side] = o.name.split('|'), part = byId.get(id);
-    if (!part) return;
-    // positions are quantized with a node transform: bake it into plain float positions
-    const q = o.geometry.attributes.position, f = new Float32Array(q.count * 3), v = new THREE.Vector3();
-    for (let i = 0; i < q.count; i++) v.fromBufferAttribute(q, i).applyMatrix4(o.matrixWorld).toArray(f, i * 3);
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(f, 3)); geo.setIndex(o.geometry.index);
-    geo.setAttribute('look', o.geometry.attributes.color);
-    geo.computeVertexNormals(); geo.computeBoundingBox();
-    const isSkin = id === 'skin';
-    const base = new THREE.Color(COLORS[id] || LAYER_COLOR[part.layers[0]] || '#cccccc');
-    const mat = new THREE.MeshToonMaterial({ color: base.clone(), gradientMap: ramp });
-    engrave(mat, LOOK[part.layers[0]]);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.userData.part = part;
-    const g = new THREE.Group(); g.add(mesh);
-    const hull = new THREE.Mesh(geo, inkMat); hull.raycast = () => {}; g.add(hull); g.userData.hull = hull;
-    const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
-    Object.assign(g.userData, { part, side, mesh, base, center, anchors: anchorsFor(geo) });
-    model.add(g); groups.push(g); part.groups.push(g);
-    if (isSkin) skinGeo = geo;
-  });
-  for (const p of parts) if (p.anchor && skinGeo) p.fixed = skinAnchor(skinGeo, p.anchor);
-  $('status').hidden = true;
-  applyState();
+// One model file per layer, fetched the first time one of its parts is shown. A part lives in the file of its first layer.
+const files = new Set();
+let pending = 0, failed = false, arrived = false; // arrived: new pieces still have to take their exploded place
+function loadLayer(layer) {
+  if (files.has(layer)) return;
+  files.add(layer); pending++;
+  new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(`models/${layer}.glb`).then(gltf => {
+    gltf.scene.updateMatrixWorld(true);
+    gltf.scene.traverse(o => {
+      if (!o.isMesh) return;
+      const [id, side] = o.name.split('|'), part = byId.get(id);
+      if (!part) return;
+      // positions are quantized with a node transform: bake it into plain float positions
+      const q = o.geometry.attributes.position, f = new Float32Array(q.count * 3), v = new THREE.Vector3();
+      for (let i = 0; i < q.count; i++) v.fromBufferAttribute(q, i).applyMatrix4(o.matrixWorld).toArray(f, i * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(f, 3)); geo.setIndex(o.geometry.index);
+      // vertex colours: the part colour, shaded a little per piece, or the colour of the class (tendon, cartilage, …)
+      const src = o.geometry.attributes.color, col = new Float32Array(q.count * 3), c = new THREE.Color();
+      const base = new THREE.Color(COLORS[id] || LAYER_COLOR[part.layers[0]] || '#cccccc'), amp = SHADE[part.layers[0]] || 0;
+      for (let i = 0; i < q.count; i++) {
+        const cls = CLASS_COLOR[Math.round(src.getX(i) * 255 / 30)], s = src.getY(i);
+        (cls ? c.copy(cls) : c.copy(base).offsetHSL((s * 7.3 % 1 - 0.5) * 0.25 * amp, 0, (s - 0.5) * amp)).toArray(col, i * 3);
+      }
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      geo.computeVertexNormals(); geo.computeBoundingBox();
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: layer === 'skin' ? 0.65 : 0.5 }));
+      mesh.userData.part = part;
+      const g = new THREE.Group(); g.add(mesh);
+      const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+      Object.assign(g.userData, { part, side, mesh, center, anchors: anchorsFor(geo) });
+      model.add(g); groups.push(g); part.groups.push(g);
+      if (id === 'skin') for (const p of parts) if (p.anchor) p.fixed = skinAnchor(geo, p.anchor);
+    });
+  }).catch(err => { console.error(err); failed = true; }).finally(() => { pending--; arrived = true; applyState(); });
 }
 
 // ---------- state → scene ----------
@@ -190,18 +151,18 @@ function opacityOf(layer) {
   return deeper && SEE_THROUGH[layer] ? SEE_THROUGH[layer] : 1;
 }
 function applyState() {
+  for (const p of parts) if (p.layers.some(l => state.layers.has(l))) loadLayer(p.layers[0]);
   for (const g of groups) {
-    const { part, mesh, base, hull } = g.userData;
+    const { part, mesh } = g.userData;
     g.visible = visible(part);
     // a part shared by several layers takes the most opaque of its active layers
-    // `glass` parts (heart wall, lungs) always stay see-through to show what is inside
-    const op = Math.min(part.glass ?? 1, Math.max(...part.layers.filter(l => state.layers.has(l)).map(opacityOf), 0));
+    const op = Math.max(...part.layers.filter(l => state.layers.has(l)).map(opacityOf), 0);
     const m = mesh.material;
     m.opacity = op; m.transparent = op < 1; m.depthWrite = op === 1;
-    if (hull) hull.visible = op === 1;
+    // the chosen part glows, the others step back into a pale haze
     const dim = state.selected && state.selected !== part.id;
-    m.color.copy(base); if (dim) m.color.lerp(paper, 0.6);
-    m.emissive.set(state.selected === part.id ? 0x5a2a08 : 0x000000);
+    m.color.set(dim ? 0x8a8a8a : 0xffffff);
+    m.emissive.set(state.selected === part.id ? 0x553300 : dim ? 0x9aa3b0 : 0x000000);
     mesh.renderOrder = op < 1 ? 2 : 0;
   }
   renderUI();
@@ -228,8 +189,7 @@ function layoutLabels() {
   camDir.copy(camera.position).sub(controls.target).setY(0).normalize();
   const items = [];
   for (const p of parts) {
-    const el = p.groups.length || p.fixed ? labelEl(p) : null;
-    if (!el) continue;
+    const el = labelEl(p);
     let anchor = null;
     if (state.names && visible(p)) {
       if (p.fixed) {
@@ -285,14 +245,15 @@ function layoutLabels() {
 // ---------- explode ----------
 let explodeNow = 0;
 const HUB = new THREE.Vector3(0, 0.3, 0);
-const zoomOut = e => 1 + 0.25 * e;
+const zoomOut = e => 1 + 0.32 * e;
 function placeGroups() {
   const before = explodeNow;
   explodeNow += (state.explode - explodeNow) * 0.15;
   if (Math.abs(state.explode - explodeNow) < 1e-4) explodeNow = state.explode;
-  if (explodeNow === before) return;
+  if (explodeNow === before && !arrived) return;
+  arrived = false;
   for (const g of groups) {
-    if (g.userData.part.id === 'skin') continue;
+    if (g.userData.part.layers[0] === 'skin') continue; // the skin and the eyes stay in place
     const c = g.userData.center;
     // spread grows with distance from the hub, plus a push so pieces near the middle still separate
     const dx = c.x - HUB.x, dz = c.z - HUB.z;
@@ -300,7 +261,7 @@ function placeGroups() {
   }
   // step back as the pieces spread so the whole plate stays in view
   const off = camera.position.clone().sub(controls.target).multiplyScalar(zoomOut(explodeNow) / zoomOut(before));
-  controls.target.y -= 0.12 * (explodeNow - before);
+  controls.target.y -= 0.14 * (explodeNow - before);
   camera.position.copy(controls.target).add(off);
 }
 
@@ -337,9 +298,10 @@ function fitDistance() {
   const col = labelBox.firstElementChild?.offsetWidth || 150;
   const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const figW = Math.max(W - 2 * col, W * 0.35) / H;
-  return Math.max(0.98 / t, 0.42 / (t * figW)) * zoomOut(explodeNow);
+  return Math.max(1.0 / t, 0.42 / (t * figW)) * zoomOut(explodeNow);
 }
-const home = () => new THREE.Vector3(0, -0.12 * explodeNow, 0);
+// the model is centred on the hips: the middle of the body is a little lower
+const home = () => new THREE.Vector3(0, -0.09 - 0.14 * explodeNow, 0);
 let fitted = false;
 function fit() {
   const W = stage.clientWidth, H = stage.clientHeight;
@@ -411,13 +373,13 @@ function renderUI() {
   $('undoLabel').textContent = t.undo; $('showAll').textContent = t.showAll(state.hidden.length);
   $('undo').hidden = $('showAll').hidden = !state.hidden.length;
   $('cardClose').setAttribute('aria-label', t.close);
-  $('status').textContent = t.loading;
+  $('status').textContent = failed ? t.error : t.loading; $('status').hidden = !failed && !pending && parts.length > 0;
   $('credits').innerHTML = t.credits;
   document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === L));
   const nav = $('layers');
   if (!nav.children.length) for (const l of LAYERS) {
     const b = document.createElement('button'); b.className = 'layer'; b.dataset.layer = l.id;
-    b.innerHTML = `<span class="sw" style="background:${l.color}"></span><span></span>`;
+    b.innerHTML = `<span aria-hidden="true">${l.icon}</span><span></span>`;
     b.addEventListener('click', () => {
       state.layers.has(l.id) ? state.layers.delete(l.id) : state.layers.add(l.id);
       if (state.selected && !visible(byId.get(state.selected))) state.selected = null;
@@ -478,10 +440,13 @@ renderer.setAnimationLoop(now => {
   controls.update();
   keepInBounds();
   placeGroups();
-  outlineW.value = camera.position.distanceTo(controls.target) * 0.0015;
   renderer.render(scene, camera);
   layoutLabels();
 });
 
 renderUI();
-load().catch(err => { console.error(err); $('status').textContent = UI[state.lang].error; });
+fetch('data/parts.json').then(r => r.json()).then(data => {
+  parts = data.parts;
+  parts.forEach((p, i) => { p.index = i; p.groups = []; byId.set(p.id, p); });
+  applyState();
+}).catch(err => { console.error(err); failed = true; renderUI(); });
