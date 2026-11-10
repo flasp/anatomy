@@ -132,7 +132,8 @@ function loadLayer(layer) {
       }
       geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
       geo.computeVertexNormals(); geo.computeBoundingBox();
-      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: layer === 'skin' ? 0.65 : 0.5 }));
+      // the stomach mesh is open at its ends: draw its inner wall too, or the openings look like holes
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: layer === 'skin' ? 0.65 : 0.5, side: id === 'stomach' ? THREE.DoubleSide : THREE.FrontSide }));
       mesh.userData.part = part;
       const g = new THREE.Group(); g.add(mesh);
       const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
