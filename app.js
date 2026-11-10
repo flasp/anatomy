@@ -46,7 +46,7 @@ const UI = {
 
 const $ = id => document.getElementById(id);
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
-const state = { lang: store.get('lang') === 'en' ? 'en' : 'fr', layers: new Set(['skin', 'organs']), explode: 0, selected: null, names: true, hidden: [] };
+const state = { lang: store.get('lang') === 'en' ? 'en' : 'fr', layers: new Set(['skin', 'organs']), explode: 0, selected: null, names: false, hidden: [] };
 
 // ---------- 3D scene ----------
 const stage = $('stage'), canvas = $('view');
@@ -295,7 +295,8 @@ function flyTo(target, distance, dir = camera.position.clone().sub(controls.targ
 }
 function fitDistance() {
   const W = stage.clientWidth, H = stage.clientHeight;
-  const col = labelBox.firstElementChild?.offsetWidth || 150;
+  // no label columns to leave room for when names are off
+  const col = state.names ? labelBox.firstElementChild?.offsetWidth || 150 : 0;
   const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const figW = Math.max(W - 2 * col, W * 0.35) / H;
   return Math.max(1.0 / t, 0.42 / (t * figW)) * zoomOut(explodeNow);
