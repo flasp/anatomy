@@ -82,3 +82,18 @@ h1 { font-weight: 700; font-size: clamp(26px, 4.4vw, 44px); margin: 0; line-heig
   .card { right: 8px; left: 8px; bottom: 8px; width: auto; }
   .card p { font-size: 16px; }
 }
+
+/* phones (portrait or landscape): the model gets the screen, each menu is one swipeable row */
+@media (max-width: 640px), (max-height: 500px) {
+  .top { align-items: center; padding-top: 6px; }
+  h1 { font-size: 22px; }
+  .subtitle, .hint { display: none; }
+  .layers, .views, .credits { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+  .layers { gap: 6px; padding-top: 4px; padding-bottom: 8px; }
+  .layer, .views .btn { flex: none; }
+  .layer { font-size: 15px; }
+  .controls { gap: 4px 12px; padding-top: 2px; padding-bottom: 6px; }
+  .explode { font-size: 14px; }
+  .views { gap: 6px; padding-bottom: 5px; max-width: 100%; }
+  .credits { font-size: 11px; padding-bottom: 4px; }
+}
