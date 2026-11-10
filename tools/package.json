@@ -2,7 +2,7 @@
   "name": "anatomy-tools",
   "private": true,
   "type": "module",
-  "scripts": { "build-model": "node build-model.mjs" },
+  "scripts": { "build-body": "node --max-old-space-size=8192 build-body.mjs" },
   "devDependencies": {
     "@gltf-transform/core": "^4.1.0",
     "@gltf-transform/extensions": "^4.1.0",

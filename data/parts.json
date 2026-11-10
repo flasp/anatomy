@@ -1,286 +1,426 @@
 {
   "parts": [
-    { "id": "skin", "layers": ["skin"], "bp3d": ["skin"], "noSplit": true,
+    { "id": "skin", "layers": ["skin"], "noSplit": true, "za": ["^Regions:"],
       "fr": { "name": "Peau", "wiki": "Peau", "text": "La peau recouvre tout ton corps comme un manteau. Elle te protège et te fait sentir le chaud, le froid et les caresses.", "fact": "C'est le plus grand organe du corps !" },
       "en": { "name": "Skin", "wiki": "Skin", "text": "Your skin covers your whole body like a coat. It protects you and lets you feel hot, cold and gentle touches.", "fact": "It is the biggest organ of the body!" } },
 
-    { "id": "cerebellum", "layers": ["organs", "nerves"], "bp3d": ["cerebellum"], "noSplit": true,
+    { "id": "cerebellum", "layers": ["organs", "nerves"], "noSplit": true, "za": ["^Nervous:.*Cerebellumg/"],
       "fr": { "name": "Cervelet", "wiki": "Cervelet", "text": "Le « petit cerveau », à l'arrière de ta tête. Il t'aide à garder l'équilibre et à faire des gestes précis, comme pédaler à vélo." },
       "en": { "name": "Cerebellum", "wiki": "Cerebellum", "text": "The \"little brain\" at the back of your head. It helps you keep your balance and make careful moves, like pedalling a bike." } },
-    { "id": "brain", "layers": ["organs", "nerves"], "bp3d": ["brain"], "noSplit": true,
+
+    { "id": "brain", "layers": ["organs", "nerves"], "noSplit": true, "za": ["Telencephalong/(Frontal|Parietal|Temporal|Occipital|Limbic)_lobeg/", "Telencephalong/(Insulag|Interlobar_sulcig)/", "Brainstemg/(Medulla_oblongata|Pons)[lr]$", "Midbraing/Midbrain[lr]$", "Base_of_peduncle[lr]$"],
       "fr": { "name": "Cerveau", "wiki": "Cerveau", "text": "C'est le chef de ton corps. Il pense, il se souvient, il rêve et il commande tous tes mouvements.", "fact": "Il travaille même quand tu dors." },
       "en": { "name": "Brain", "wiki": "Brain", "text": "It is the boss of your body. It thinks, remembers, dreams and controls every move you make.", "fact": "It keeps working even while you sleep." } },
-    { "id": "eyes", "layers": ["organs"], "bp3d": ["(right|left) eyeball"],
+
+    { "id": "eyes", "layers": ["skin", "organs"], "za": ["Eyeballg/(Sclera|Iris|Lens)[lr]$"],
       "fr": { "name": "Yeux", "wiki": "Œil", "text": "Tes yeux voient les couleurs, les formes et ce qui bouge, puis envoient les images à ton cerveau.", "fact": "Tu clignes des yeux plus de 10 000 fois par jour." },
       "en": { "name": "Eyes", "wiki": "Eye", "text": "Your eyes see colours, shapes and movement, then send the pictures to your brain.", "fact": "You blink more than 10,000 times a day." } },
-    { "id": "optic_nerves", "layers": ["nerves"], "bp3d": ["(right|left) optic nerve"],
+
+    { "id": "optic_nerves", "layers": ["nerves"], "za": ["Optic_nerve_\\(II\\)[lr]$", "Optic_chiasm[lr]$", "Optic_tract[lr]$"],
       "fr": { "name": "Nerfs optiques", "wiki": "Nerf optique", "text": "Ce sont les câbles qui relient tes yeux à ton cerveau : ils transportent tout ce que tu vois." },
       "en": { "name": "Optic nerves", "wiki": "Optic nerve", "text": "These are the cables joining your eyes to your brain: they carry everything you see." } },
-    { "id": "trachea", "layers": ["organs"], "bp3d": ["trachea"], "noSplit": true,
+
+    { "id": "trachea", "layers": ["organs"], "noSplit": true, "za": ["Tracheobronchial_treeg/Trachea$"],
       "fr": { "name": "Trachée", "wiki": "Trachée", "text": "Le tuyau qui amène l'air de ton nez et de ta bouche jusqu'à tes poumons.", "fact": "Touche doucement le devant de ton cou : tu sens ses anneaux durs." },
       "en": { "name": "Windpipe", "wiki": "Trachea", "text": "The tube that carries air from your nose and mouth down to your lungs.", "fact": "Gently touch the front of your neck: you can feel its hard rings." } },
-    { "id": "esophagus", "layers": ["organs"], "bp3d": ["esophagus"], "noSplit": true,
+
+    { "id": "esophagus", "layers": ["organs"], "noSplit": true, "za": ["/Oesophagus$"],
       "fr": { "name": "Œsophage", "wiki": "Œsophage", "text": "Le tuyau qui fait descendre la nourriture de ta bouche jusqu'à ton estomac.", "fact": "Il pousse la nourriture par vagues : on pourrait même avaler la tête en bas !" },
       "en": { "name": "Food pipe", "wiki": "Esophagus", "text": "The tube that takes food down from your mouth to your stomach.", "fact": "It pushes food along in waves: you could even swallow upside down!" } },
-    { "id": "right_atrium", "layers": ["organs", "blood"], "bp3d": ["cavity of right atrium"], "noSplit": true,
+
+    { "id": "right_atrium", "layers": ["organs", "blood"], "noSplit": true, "za": ["Heartg/Right_atrium$"],
       "fr": { "name": "Oreillette droite", "wiki": "Atrium (anatomie)", "text": "Une petite chambre en haut du cœur qui reçoit le sang fatigué, sans oxygène, qui revient du corps." },
       "en": { "name": "Right atrium", "wiki": "Atrium (heart)", "text": "A small room at the top of the heart that collects tired blood, with no oxygen left, coming back from the body." } },
-    { "id": "right_ventricle", "layers": ["organs", "blood"], "bp3d": ["cavity of right ventricle"], "noSplit": true,
+
+    { "id": "right_ventricle", "layers": ["organs", "blood"], "noSplit": true, "za": ["Heartg/Right_ventricle$"],
       "fr": { "name": "Ventricule droit", "wiki": "Ventricule cardiaque", "text": "Il pousse le sang vers les poumons pour qu'il se recharge en oxygène." },
       "en": { "name": "Right ventricle", "wiki": "Ventricle (heart)", "text": "It pushes blood to the lungs so it can fill up with oxygen again." } },
-    { "id": "left_atrium", "layers": ["organs", "blood"], "bp3d": ["cavity of left atrium"], "noSplit": true,
+
+    { "id": "left_atrium", "layers": ["organs", "blood"], "noSplit": true, "za": ["Heartg/Left_atrium$"],
       "fr": { "name": "Oreillette gauche", "wiki": "Atrium (anatomie)", "text": "Elle reçoit le sang tout neuf, plein d'oxygène, qui revient des poumons." },
       "en": { "name": "Left atrium", "wiki": "Atrium (heart)", "text": "It collects fresh blood, full of oxygen, coming back from the lungs." } },
-    { "id": "left_ventricle", "layers": ["organs", "blood"], "bp3d": ["cavity of left ventricle"], "noSplit": true,
+
+    { "id": "left_ventricle", "layers": ["organs", "blood"], "noSplit": true, "za": ["Heartg/Left_ventricle$"],
       "fr": { "name": "Ventricule gauche", "wiki": "Ventricule cardiaque", "text": "La pompe la plus forte du cœur : elle envoie le sang rouge dans tout le corps.", "fact": "Sa paroi est la plus épaisse du cœur." },
       "en": { "name": "Left ventricle", "wiki": "Ventricle (heart)", "text": "The strongest pump of the heart: it sends red blood all around the body.", "fact": "Its wall is the thickest in the heart." } },
-    { "id": "heart", "layers": ["organs", "blood"], "bp3d": ["heart"], "noSplit": true, "glass": 0.35,
+
+    { "id": "heart", "layers": ["organs", "blood"], "noSplit": true, "za": ["^Cardio:Arterial_systemg/(Heartg|Arteries_of_heartg)/", "^Cardio:Venous_systemg/Cardiac_veinsg/"],
       "fr": { "name": "Cœur", "wiki": "Cœur", "text": "Une pompe grosse comme ton poing qui envoie le sang dans tout ton corps.", "fact": "Il a 4 chambres : 2 oreillettes en haut et 2 ventricules en bas. Il bat plus de 100 000 fois par jour !" },
       "en": { "name": "Heart", "wiki": "Heart", "text": "A pump about the size of your fist that sends blood all around your body.", "fact": "It has 4 rooms: 2 atria at the top and 2 ventricles at the bottom. It beats more than 100,000 times a day!" } },
-    { "id": "bronchi", "layers": ["organs"], "bp3d": ["(right|left) bronchial tree"],
+
+    { "id": "bronchi", "layers": ["organs"], "za": ["Tracheobronchial_treeg/Bronchig/"],
       "fr": { "name": "Bronches", "wiki": "Bronche", "text": "Des tuyaux qui se divisent comme les branches d'un arbre pour amener l'air partout dans les poumons.", "fact": "On l'appelle l'arbre bronchique… et c'est un arbre à l'envers !" },
       "en": { "name": "Bronchi", "wiki": "Bronchus", "text": "Tubes that split like the branches of a tree to carry air all through the lungs.", "fact": "It is called the bronchial tree… and it is an upside-down tree!" } },
-    { "id": "lungs", "layers": ["organs"], "bp3d": ["(right|left) lung"], "blob": 16, "glass": 0.3,
+
+    { "id": "lungs", "layers": ["organs"], "za": ["Respiratory_systemg/Lungsg/"],
       "fr": { "name": "Poumons", "wiki": "Poumon", "text": "Quand tu respires, l'air entre dans tes deux poumons, qui gonflent comme des ballons.", "fact": "Le poumon gauche est plus petit, pour laisser de la place au cœur." },
       "en": { "name": "Lungs", "wiki": "Lung", "text": "When you breathe in, air fills your two lungs and they swell like balloons.", "fact": "The left lung is smaller, to leave room for the heart." } },
-    { "id": "liver", "layers": ["organs"], "bp3d": ["liver"], "noSplit": true,
+
+    { "id": "liver", "layers": ["organs"], "noSplit": true, "za": ["Digestive_systemg/Liver$"],
       "fr": { "name": "Foie", "wiki": "Foie", "text": "Il nettoie ton sang et aide à digérer ce que tu manges.", "fact": "C'est le plus gros organe à l'intérieur du corps." },
       "en": { "name": "Liver", "wiki": "Liver", "text": "It cleans your blood and helps you digest your food.", "fact": "It is the biggest organ inside the body." } },
-    { "id": "stomach", "layers": ["organs"], "bp3d": ["stomach"], "noSplit": true,
+
+    { "id": "stomach", "layers": ["organs"], "noSplit": true, "za": ["Digestive_canalg/Stomach$"],
       "fr": { "name": "Estomac", "wiki": "Estomac", "text": "Une poche qui écrase et mélange ce que tu manges avec un jus très acide.", "fact": "Quand il est vide, il gargouille !" },
       "en": { "name": "Stomach", "wiki": "Stomach", "text": "A bag that squashes your food and mixes it with a very strong juice.", "fact": "When it is empty, it rumbles!" } },
-    { "id": "small_intestine", "layers": ["organs"], "bp3d": ["small intestine"], "noSplit": true,
+
+    { "id": "small_intestine", "layers": ["organs"], "noSplit": true, "za": ["Digestive_canalg/Small_intestineg/"],
       "fr": { "name": "Intestin grêle", "wiki": "Intestin grêle", "text": "Un très long tuyau tout replié. C'est là que ton corps prend ce qui est bon dans la nourriture.", "fact": "Chez un adulte, déroulé, il mesure environ 6 mètres : plus long qu'une voiture !" },
       "en": { "name": "Small intestine", "wiki": "Small intestine", "text": "A very long, folded-up tube. This is where your body takes the good things out of your food.", "fact": "In a grown-up, unrolled, it is about 6 metres long: longer than a car!" } },
-    { "id": "large_intestine", "layers": ["organs"], "bp3d": ["large intestine"], "noSplit": true,
+
+    { "id": "large_intestine", "layers": ["organs"], "noSplit": true, "za": ["Large_intestineg/Colong/[^/]*$", "Large_intestineg/[^/]*$"],
       "fr": { "name": "Gros intestin", "wiki": "Gros intestin", "text": "Il récupère l'eau de ce qui reste de la nourriture et prépare le caca.", "fact": "Il est plus court que l'intestin grêle, mais plus large : c'est pour ça qu'on l'appelle « gros »." },
       "en": { "name": "Large intestine", "wiki": "Large intestine", "text": "It takes the water back from leftover food and gets the poo ready.", "fact": "It is shorter than the small intestine but wider: that is why it is called \"large\"." } },
-    { "id": "kidneys", "layers": ["organs"], "bp3d": ["(right|left) kidney"],
+
+    { "id": "kidneys", "layers": ["organs"], "za": ["Urinary_systemg/(Kidney|Renal_pelvis)[lr]$"],
       "fr": { "name": "Reins", "wiki": "Rein", "text": "Deux filtres en forme de haricot qui nettoient ton sang et fabriquent le pipi.", "fact": "Ils sont cachés dans ton dos, de chaque côté de la colonne vertébrale." },
       "en": { "name": "Kidneys", "wiki": "Kidney", "text": "Two bean-shaped filters that clean your blood and make your wee.", "fact": "They hide in your back, one on each side of your spine." } },
-    { "id": "pancreas", "layers": ["organs"], "bp3d": ["pancreas"], "noSplit": true,
+
+    { "id": "pancreas", "layers": ["organs"], "noSplit": true, "za": ["Digestive_systemg/Pancreas$"],
       "fr": { "name": "Pancréas", "wiki": "Pancréas", "text": "Il fabrique un jus qui aide à digérer, et l'insuline, qui règle le sucre dans ton sang." },
       "en": { "name": "Pancreas", "wiki": "Pancreas", "text": "It makes a juice that helps you digest, and insulin, which controls the sugar in your blood." } },
-    { "id": "gallbladder", "layers": ["organs"], "bp3d": ["gallbladder"], "noSplit": true,
+
+    { "id": "gallbladder", "layers": ["organs"], "noSplit": true, "za": ["Digestive_systemg/Gallbladder$", "Extrahepatic_bile_ductsg/"],
       "fr": { "name": "Vésicule biliaire", "wiki": "Vésicule biliaire", "text": "Une petite poche verte sous le foie. Elle garde la bile, un liquide qui aide à digérer le gras." },
       "en": { "name": "Gallbladder", "wiki": "Gallbladder", "text": "A small green pouch under the liver. It stores bile, a liquid that helps you digest fat." } },
-    { "id": "tongue", "layers": ["organs"], "bp3d": ["tongue"], "noSplit": true,
+
+    { "id": "tongue", "layers": ["organs"], "noSplit": true, "za": ["Mouthg/Tongue$"],
       "fr": { "name": "Langue", "wiki": "Langue (anatomie humaine)", "text": "Un muscle qui goûte les saveurs (sucré, salé, acide, amer…) et qui t'aide à parler et à avaler.", "fact": "Elle est si souple qu'elle bouge dans tous les sens." },
       "en": { "name": "Tongue", "wiki": "Tongue", "text": "A muscle that tastes flavours (sweet, salty, sour, bitter…) and helps you talk and swallow.", "fact": "It is so bendy it can move in every direction." } },
-    { "id": "bladder", "layers": ["organs"], "bp3d": ["urinary bladder"], "noSplit": true,
+
+    { "id": "bladder", "layers": ["organs"], "noSplit": true, "za": ["Urinary_bladder$"],
       "fr": { "name": "Vessie", "wiki": "Vessie", "text": "Un petit ballon qui garde le pipi jusqu'à ce que tu ailles aux toilettes." },
       "en": { "name": "Bladder", "wiki": "Urinary bladder", "text": "A little balloon that holds your wee until you go to the toilet." } },
 
-    { "id": "teeth", "layers": ["bones"], "bp3d": ["tooth"], "noSplit": true,
+    { "id": "spleen", "layers": ["organs"], "za": ["^Lymphoid:.*/Spleen$"], "noSplit": true,
+      "fr": { "name": "Rate", "wiki": "Rate", "text": "Elle filtre ton sang et aide ton corps à se défendre contre les microbes.", "fact": "Elle est cachée à gauche, derrière ton estomac." },
+      "en": { "name": "Spleen", "wiki": "Spleen", "text": "It filters your blood and helps your body fight germs.", "fact": "It hides on your left side, behind your stomach." } },
+
+    { "id": "ureters", "layers": ["organs"], "za": ["Urinary_systemg/Ureter[lr]$"],
+      "fr": { "name": "Uretères", "wiki": "Uretère", "text": "Deux petits tuyaux qui emmènent le pipi des reins jusqu'à la vessie." },
+      "en": { "name": "Ureters", "wiki": "Ureter", "text": "Two thin tubes that carry wee from the kidneys down to the bladder." } },
+
+    { "id": "larynx", "layers": ["organs"], "za": ["^Skeletal:Laryngeal_cartilagesg/", "Larynxg/Epiglottis$"], "noSplit": true,
+      "fr": { "name": "Larynx", "wiki": "Larynx", "text": "C'est ta boîte à voix ! L'air qui passe fait vibrer tes cordes vocales, et ça fait le son de ta voix.", "fact": "Pose la main sur ta gorge et chante : tu le sens vibrer !" },
+      "en": { "name": "Larynx (voice box)", "wiki": "Larynx", "text": "Your voice box! Air going through makes your vocal cords shake, and that makes the sound of your voice.", "fact": "Put a hand on your throat and sing: you can feel it buzz!" } },
+
+    { "id": "thyroid", "layers": ["organs"], "za": ["Endocrine_glandsg/Thyroid_gland$"], "noSplit": true,
+      "fr": { "name": "Thyroïde", "wiki": "Thyroïde", "text": "Une petite glande en forme de papillon dans ton cou. Elle aide ton corps à grandir et à utiliser son énergie." },
+      "en": { "name": "Thyroid", "wiki": "Thyroid", "text": "A small butterfly-shaped gland in your neck. It helps your body grow and use its energy." } },
+
+    { "id": "pharynx", "layers": ["organs"], "za": ["Digestive_systemg/Pharynxg/[^/]*$"], "noSplit": true,
+      "fr": { "name": "Gorge (pharynx)", "wiki": "Pharynx", "text": "Le carrefour au fond de ta bouche : l'air part vers les poumons et la nourriture vers l'estomac." },
+      "en": { "name": "Throat (pharynx)", "wiki": "Pharynx", "text": "The crossroads at the back of your mouth: air goes on to the lungs and food goes on to the stomach." } },
+
+    { "id": "teeth", "layers": ["bones"], "noSplit": true, "za": ["^Skeletal:Teethg/"],
       "fr": { "name": "Dents", "wiki": "Dent", "text": "Elles coupent et écrasent la nourriture pour que tu puisses l'avaler.", "fact": "Les enfants ont 20 dents de lait, les adultes jusqu'à 32. Ici, ce sont des dents d'adulte." },
       "en": { "name": "Teeth", "wiki": "Tooth", "text": "They cut and crush your food so you can swallow it.", "fact": "Children have 20 baby teeth, grown-ups up to 32. These are grown-up teeth." } },
-    { "id": "mandible", "layers": ["bones"], "bp3d": ["mandible"], "noSplit": true,
+
+    { "id": "mandible", "layers": ["bones"], "noSplit": true, "za": ["Extracranial_bones_of_headg/Mandible$"],
       "fr": { "name": "Mâchoire", "wiki": "Mandibule", "text": "Le seul os de ta tête qui bouge : il s'ouvre et se ferme pour parler et mâcher." },
       "en": { "name": "Jawbone", "wiki": "Mandible", "text": "The only bone in your head that moves: it opens and closes so you can talk and chew." } },
-    { "id": "skull", "layers": ["bones"], "bp3d": ["skull"], "only": "bone organ", "noSplit": true,
+
+    { "id": "skull", "layers": ["bones"], "noSplit": true, "za": ["^Skeletal:Craniumg/Bones_of_craniumg/[^/]*$"],
       "fr": { "name": "Crâne", "wiki": "Crâne", "text": "Un casque en os qui protège ton cerveau.", "fact": "Il est fait de plusieurs os soudés entre eux." },
       "en": { "name": "Skull", "wiki": "Skull", "text": "A helmet made of bone that protects your brain.", "fact": "It is made of several bones joined together." } },
-    { "id": "sternum", "layers": ["bones"], "bp3d": ["sternum"], "noSplit": true,
+
+    { "id": "sternum", "layers": ["bones"], "noSplit": true, "za": ["Bones_of_thoraxg/Sternumg/"],
       "fr": { "name": "Sternum", "wiki": "Sternum", "text": "L'os plat au milieu de ta poitrine. Les côtes s'y accrochent par devant." },
       "en": { "name": "Breastbone", "wiki": "Sternum", "text": "The flat bone in the middle of your chest. Your ribs join onto it at the front." } },
-    { "id": "spine", "layers": ["bones"], "bp3d": ["vertebral column"], "only": "bone organ|intervertebral disk", "noSplit": true,
+
+    { "id": "spine", "layers": ["bones"], "noSplit": true, "za": ["^Skeletal:Vertebral_columng/", "^Joints:.*/Intervertebral_disc_[^/]*$"],
       "fr": { "name": "Colonne vertébrale", "wiki": "Colonne vertébrale", "text": "Une pile de petits os, les vertèbres, qui te tient droit et protège la moelle épinière.", "fact": "Elle est faite de plus de 30 vertèbres." },
       "en": { "name": "Spine", "wiki": "Vertebral column", "text": "A stack of small bones called vertebrae that keeps you upright and protects your spinal cord.", "fact": "It is made of more than 30 vertebrae." } },
-    { "id": "costal_cartilage", "layers": ["bones"], "bp3d": ["rib cage"], "only": "cartilage organ component",
+
+    { "id": "costal_cartilage", "layers": ["bones"], "za": ["Thoracic_skeletong/Costal_cartilagesg/"],
       "fr": { "name": "Cartilages costaux", "wiki": "Cartilage costal", "text": "Une matière souple, comme le bout de ton nez, qui relie tes côtes au sternum. Grâce à eux, ta poitrine peut gonfler quand tu respires." },
       "en": { "name": "Rib cartilage", "wiki": "Costal cartilage", "text": "Bendy material, like the tip of your nose, that joins your ribs to your breastbone. It lets your chest swell when you breathe in." } },
-    { "id": "ribs", "layers": ["bones"], "bp3d": ["rib cage"], "only": "bone organ",
+
+    { "id": "ribs", "layers": ["bones"], "za": ["Bones_of_thoraxg/Ribsg/"],
       "fr": { "name": "Côtes", "wiki": "Côte (anatomie)", "text": "Comme une cage, elles protègent ton cœur et tes poumons.", "fact": "Tu en as 24 : 12 de chaque côté." },
       "en": { "name": "Ribs", "wiki": "Rib", "text": "Like a cage, they protect your heart and lungs.", "fact": "You have 24 of them: 12 on each side." } },
-    { "id": "clavicle", "layers": ["bones"], "bp3d": ["(right|left) clavicle"],
+
+    { "id": "clavicle", "layers": ["bones"], "za": ["Bones_of_pectoral_girdleg/Clavicle[lr]$"],
       "fr": { "name": "Clavicule", "wiki": "Clavicule", "text": "L'os qui relie ton épaule au milieu de ta poitrine. Tu peux le toucher sous ton cou." },
       "en": { "name": "Collarbone", "wiki": "Clavicle", "text": "The bone that joins your shoulder to the middle of your chest. You can feel it below your neck." } },
-    { "id": "scapula", "layers": ["bones"], "bp3d": ["(right|left) scapula"],
+
+    { "id": "scapula", "layers": ["bones"], "za": ["Bones_of_pectoral_girdleg/Scapula[lr]$"],
       "fr": { "name": "Omoplate", "wiki": "Scapula", "text": "Un os plat en forme de triangle, dans ton dos. Il aide ton bras à bouger dans tous les sens." },
       "en": { "name": "Shoulder blade", "wiki": "Scapula", "text": "A flat, triangle-shaped bone in your back. It helps your arm move in every direction." } },
-    { "id": "humerus", "layers": ["bones"], "bp3d": ["(right|left) humerus"],
+
+    { "id": "humerus", "layers": ["bones"], "za": ["Bones_of_free_part_of_upper_limbg/Humerus[lr]$"],
       "fr": { "name": "Humérus", "wiki": "Humérus", "text": "L'os du haut du bras, entre l'épaule et le coude." },
       "en": { "name": "Humerus", "wiki": "Humerus", "text": "The bone of your upper arm, between your shoulder and your elbow." } },
-    { "id": "radius", "layers": ["bones"], "bp3d": ["(right|left) radius"],
+
+    { "id": "radius", "layers": ["bones"], "za": ["Bones_of_free_part_of_upper_limbg/Radius[lr]$"],
       "fr": { "name": "Radius", "wiki": "Radius (os)", "text": "Un des deux os de l'avant-bras, du côté du pouce. Il tourne autour de l'autre pour retourner ta main." },
       "en": { "name": "Radius", "wiki": "Radius (bone)", "text": "One of the two forearm bones, on the thumb side. It turns around the other one to flip your hand over." } },
-    { "id": "ulna", "layers": ["bones"], "bp3d": ["(right|left) ulna"],
+
+    { "id": "ulna", "layers": ["bones"], "za": ["Bones_of_free_part_of_upper_limbg/Ulna[lr]$"],
       "fr": { "name": "Cubitus", "wiki": "Ulna", "text": "L'autre os de l'avant-bras, du côté du petit doigt. Son bout forme la pointe de ton coude.", "fact": "Son nom savant aujourd'hui est « ulna »." },
       "en": { "name": "Ulna", "wiki": "Ulna", "text": "The other forearm bone, on the little-finger side. Its end makes the point of your elbow." } },
-    { "id": "hand_bones", "layers": ["bones"], "bp3d": ["skeleton of (right|left) hand proper", "carpal bone", "metacarpal bone", "(proximal|middle|distal) phalanx of (thumb|index finger|middle finger|ring finger|little finger)"], "only": "bone organ",
+
+    { "id": "hand_bones", "layers": ["bones"], "za": ["^Skeletal:.*Bones_of_free_part_of_upper_limbg/"],
       "fr": { "name": "Os de la main", "wiki": "Main", "text": "Plein de petits os qui permettent à tes doigts de bouger, d'attraper et de dessiner.", "fact": "Chaque main compte 27 os." },
       "en": { "name": "Hand bones", "wiki": "Hand", "text": "Lots of little bones that let your fingers move, grab and draw.", "fact": "Each hand has 27 bones." } },
-    { "id": "pelvis", "layers": ["bones"], "bp3d": ["(right|left) hip bone"],
+
+    { "id": "pelvis", "layers": ["bones"], "za": ["Bones_of_pelvic_girdleg/Hip_bone[lr]$", "^Joints:.*/Interpubic_disc$"],
       "fr": { "name": "Bassin", "wiki": "Bassin (anatomie)", "text": "Des os en forme de bol qui relient ta colonne à tes jambes et portent ton ventre." },
       "en": { "name": "Pelvis", "wiki": "Pelvis", "text": "Bowl-shaped bones that join your spine to your legs and hold up your tummy." } },
-    { "id": "femur", "layers": ["bones"], "bp3d": ["(right|left) femur"],
+
+    { "id": "femur", "layers": ["bones"], "za": ["lower_limbg/Femur[lr]$"],
       "fr": { "name": "Fémur", "wiki": "Fémur", "text": "L'os de la cuisse, entre la hanche et le genou.", "fact": "C'est l'os le plus long et le plus solide du corps." },
       "en": { "name": "Thighbone", "wiki": "Femur", "text": "The bone of your thigh, between your hip and your knee.", "fact": "It is the longest and strongest bone in the body." } },
-    { "id": "patella", "layers": ["bones"], "bp3d": ["(right|left) patella"],
+
+    { "id": "patella", "layers": ["bones"], "za": ["lower_limbg/Patella[lr]$"],
       "fr": { "name": "Rotule", "wiki": "Patella (os)", "text": "Un petit os rond devant ton genou, qui le protège.", "fact": "Chez les bébés, la rotule est toute molle : elle devient un os en grandissant." },
       "en": { "name": "Kneecap", "wiki": "Patella", "text": "A small round bone at the front of your knee that protects it.", "fact": "In babies the kneecap is soft: it turns into bone as they grow." } },
-    { "id": "tibia", "layers": ["bones"], "bp3d": ["(right|left) tibia"],
+
+    { "id": "tibia", "layers": ["bones"], "za": ["lower_limbg/Tibia[lr]$"],
       "fr": { "name": "Tibia", "wiki": "Tibia", "text": "Le gros os de devant de ta jambe, juste sous la peau.", "fact": "C'est pour ça que ça fait si mal quand on se cogne le tibia !" },
       "en": { "name": "Shinbone", "wiki": "Tibia", "text": "The big bone at the front of your lower leg, just under the skin.", "fact": "That is why it hurts so much when you bump your shin!" } },
-    { "id": "fibula", "layers": ["bones"], "bp3d": ["(right|left) fibula"],
+
+    { "id": "fibula", "layers": ["bones"], "za": ["lower_limbg/Fibula[lr]$"],
       "fr": { "name": "Péroné", "wiki": "Fibula", "text": "Un os tout fin à côté du tibia, sur le côté extérieur de ta jambe.", "fact": "Son nom savant aujourd'hui est « fibula »." },
       "en": { "name": "Fibula", "wiki": "Fibula", "text": "A thin bone next to the shinbone, on the outer side of your lower leg." } },
-    { "id": "foot_bones", "layers": ["bones"], "bp3d": ["(right|left) foot"], "only": "bone organ",
+
+    { "id": "foot_bones", "layers": ["bones"], "za": ["^Skeletal:.*Bones_of_footg/"],
       "fr": { "name": "Os du pied", "wiki": "Pied (anatomie humaine)", "text": "Des petits os bien serrés qui portent tout ton poids quand tu marches.", "fact": "Chaque pied compte 26 os." },
       "en": { "name": "Foot bones", "wiki": "Foot", "text": "Small bones packed tightly together that carry all your weight when you walk.", "fact": "Each foot has 26 bones." } },
 
-    { "id": "diaphragm", "layers": ["muscles"], "bp3d": ["diaphragm"], "noSplit": true,
+    { "id": "diaphragm", "layers": ["muscles"], "noSplit": true, "za": ["^Muscular:.*/Diaphragm$"],
       "fr": { "name": "Diaphragme", "wiki": "Diaphragme (organe)", "text": "Un grand muscle en forme de dôme sous tes poumons. Quand il descend, l'air entre : tu respires !", "fact": "Le hoquet, c'est lui qui se contracte tout seul par petits sauts." },
       "en": { "name": "Diaphragm", "wiki": "Thoracic diaphragm", "text": "A big dome-shaped muscle under your lungs. When it moves down, air rushes in: you breathe!", "fact": "Hiccups happen when it jumps all by itself." } },
-    { "id": "sternocleidomastoid", "layers": ["muscles"], "bp3d": ["(right|left) sternocleidomastoid"],
+
+    { "id": "sternocleidomastoid", "layers": ["muscles"], "za": ["Muscles_of_neckg/Sternocleidomastoid"],
       "fr": { "name": "Sterno-cléido-mastoïdien", "wiki": "Muscle sterno-cléido-mastoïdien", "text": "Un muscle de chaque côté du cou qui te permet de tourner et de pencher la tête." },
       "en": { "name": "Sternocleidomastoid", "wiki": "Sternocleidomastoid muscle", "text": "A muscle on each side of your neck that lets you turn and tilt your head." } },
-    { "id": "trapezius", "layers": ["muscles"], "bp3d": ["(ascending|transverse|descending) part of (right|left) trapezius"],
+
+    { "id": "trapezius", "layers": ["muscles"], "za": ["Trapezius_muscleg/"],
       "fr": { "name": "Trapèze", "wiki": "Muscle trapèze", "text": "Un grand muscle du haut du dos qui lève tes épaules, comme quand tu dis « je ne sais pas »." },
       "en": { "name": "Trapezius", "wiki": "Trapezius", "text": "A big muscle in your upper back that lifts your shoulders, like when you shrug." } },
-    { "id": "deltoid", "layers": ["muscles"], "bp3d": ["(clavicular|acromial|spinal) part of (right|left) deltoid"],
+
+    { "id": "deltoid", "layers": ["muscles"], "za": ["Scapulohumeral_musclesg/Deltoid_muscleg/"],
       "fr": { "name": "Deltoïde", "wiki": "Muscle deltoïde", "text": "Le muscle tout rond de l'épaule. Il lève ton bras pour faire coucou." },
       "en": { "name": "Deltoid", "wiki": "Deltoid muscle", "text": "The round muscle of your shoulder. It lifts your arm to wave hello." } },
-    { "id": "pectoralis", "layers": ["muscles"], "fibre": [-1, 0.35, 0], "bp3d": ["(right|left) pectoralis major"],
+
+    { "id": "pectoralis", "layers": ["muscles"], "za": ["Pectoralis_major_muscleg/"],
       "fr": { "name": "Grand pectoral", "wiki": "Muscle grand pectoral", "text": "Le grand muscle de la poitrine : il serre tes bras contre toi, comme pour un gros câlin." },
       "en": { "name": "Pectoralis major", "wiki": "Pectoralis major muscle", "text": "The big chest muscle: it pulls your arms in, like when you give a big hug." } },
-    { "id": "biceps", "layers": ["muscles"], "bp3d": ["(short|long) head of (right|left) biceps brachii"],
+
+    { "id": "biceps", "layers": ["muscles"], "za": ["Biceps_brachii_muscleg/"],
       "fr": { "name": "Biceps", "wiki": "Muscle biceps brachial", "text": "Il plie ton bras. Quand tu fais le costaud, c'est lui qui gonfle !" },
       "en": { "name": "Biceps", "wiki": "Biceps", "text": "It bends your arm. When you show off your muscles, this is the one that bulges!" } },
-    { "id": "triceps", "layers": ["muscles"], "bp3d": ["(medial|lateral|long) head of (right|left) triceps brachii"],
+
+    { "id": "triceps", "layers": ["muscles"], "za": ["Muscles_of_upper_limbg/Posterior_compartment_of_armg/"],
       "fr": { "name": "Triceps", "wiki": "Muscle triceps brachial", "text": "Derrière le bras : il tend ton bras pour pousser ou lancer une balle." },
       "en": { "name": "Triceps", "wiki": "Triceps", "text": "At the back of your arm: it straightens your arm to push or throw a ball." } },
-    { "id": "forearm_muscles", "layers": ["muscles"], "bp3d": ["(right|left) (brachioradialis|flexor carpi radialis|extensor carpi radialis longus|extensor carpi radialis brevis|extensor carpi ulnaris|palmaris longus|extensor digitorum|flexor digitorum superficialis)", "(humeral|ulnar|humero-ulnar) head of (right|left) (pronator teres|flexor carpi ulnaris|flexor digitorum superficialis)"],
+
+    { "id": "forearm_muscles", "layers": ["muscles"], "za": ["Muscles_of_upper_limbg/(Anterior|Posterior)_compartment_of_forearmg/"],
       "fr": { "name": "Muscles de l'avant-bras", "wiki": "Avant-bras", "text": "Ils font bouger ton poignet et tes doigts : ce sont eux qui travaillent quand tu serres fort." },
       "en": { "name": "Forearm muscles", "wiki": "Forearm", "text": "They move your wrist and fingers: they are the ones working when you squeeze hard." } },
-    { "id": "abdominals", "layers": ["muscles"], "fibre": [0.6, -0.8, 0], "bp3d": ["(right|left) external oblique", "(right|left) rectus abdominis", "muscle of anterior abdominal wall"],
-      "fr": { "name": "Muscle oblique (abdominaux)", "wiki": "Muscle oblique externe de l'abdomen", "text": "Ils entourent ton ventre comme une ceinture et t'aident à te tourner et à te pencher." },
-      "en": { "name": "Oblique muscle (abs)", "wiki": "Abdominal external oblique muscle", "text": "They wrap around your tummy like a belt and help you twist and bend." } },
-    { "id": "gluteus", "layers": ["muscles"], "fibre": [-0.7, -0.7, 0], "bp3d": ["(right|left) gluteus maximus"],
+
+    { "id": "abdominals", "layers": ["muscles"], "za": ["^Muscular:Abdominal_part_of_muscular_systemg/Muscles_of_abdomeng/"],
+      "fr": { "name": "Abdominaux", "wiki": "Muscle oblique externe de l'abdomen", "text": "Ils entourent ton ventre comme une ceinture et t'aident à te tourner et à te pencher." },
+      "en": { "name": "Tummy muscles (abs)", "wiki": "Abdominal external oblique muscle", "text": "They wrap around your tummy like a belt and help you twist and bend." } },
+
+    { "id": "gluteus", "layers": ["muscles"], "za": ["Superficial_gluteal_musclesg/Gluteus_maximus"],
       "fr": { "name": "Grand fessier", "wiki": "Muscle grand fessier", "text": "Le muscle de tes fesses. Il t'aide à te lever, à monter les escaliers et à sauter.", "fact": "C'est le plus gros muscle du corps !" },
       "en": { "name": "Gluteus maximus", "wiki": "Gluteus maximus", "text": "The muscle of your bottom. It helps you stand up, climb stairs and jump.", "fact": "It is the biggest muscle in the body!" } },
-    { "id": "quadriceps", "layers": ["muscles"], "bp3d": ["(right|left) (rectus femoris|vastus lateralis|vastus medialis|vastus intermedius)"],
+
+    { "id": "quadriceps", "layers": ["muscles"], "za": ["Anterior_compartment_of_thighg/(.*/)?(Vastus|Rectus_femoris)"],
       "fr": { "name": "Quadriceps", "wiki": "Muscle quadriceps fémoral", "text": "Le gros muscle du devant de la cuisse : il tend ta jambe pour taper dans un ballon.", "fact": "Il est fait de quatre muscles, d'où son nom « quadri »." },
       "en": { "name": "Quadriceps", "wiki": "Quadriceps femoris muscle", "text": "The big muscle at the front of your thigh: it straightens your leg to kick a ball.", "fact": "It is made of four muscles, which is why it is called \"quad\"." } },
-    { "id": "sartorius", "layers": ["muscles"], "bp3d": ["(right|left) sartorius"],
+
+    { "id": "sartorius", "layers": ["muscles"], "za": ["Anterior_compartment_of_thighg/Sartorius"],
       "fr": { "name": "Muscle couturier", "wiki": "Muscle sartorius", "text": "Le muscle le plus long du corps ! Il traverse la cuisse en biais et t'aide à t'asseoir en tailleur.", "fact": "Son nom vient des couturiers, qui cousaient assis les jambes croisées." },
       "en": { "name": "Sartorius", "wiki": "Sartorius muscle", "text": "The longest muscle in the body! It crosses your thigh at a slant and helps you sit cross-legged.", "fact": "Its name comes from the Latin word for tailor: tailors sat cross-legged to sew." } },
-    { "id": "adductors", "layers": ["muscles"], "bp3d": ["(right|left) (adductor longus|adductor brevis|adductor magnus|gracilis|pectineus)"],
+
+    { "id": "adductors", "layers": ["muscles"], "za": ["Muscles_of_lower_limbg/(Medial_compartment_of_thighg/|Anterior_compartment_of_thighg/)"],
       "fr": { "name": "Adducteurs", "wiki": "Muscle long adducteur", "text": "Les muscles de l'intérieur de la cuisse : ils serrent tes jambes l'une contre l'autre." },
       "en": { "name": "Adductors", "wiki": "Adductor muscles of the hip", "text": "The muscles on the inside of your thigh: they squeeze your legs together." } },
-    { "id": "hamstrings", "layers": ["muscles"], "bp3d": ["(right|left) (semitendinosus|semimembranosus)", "(long|short) head of (right|left) biceps femoris"],
+
+    { "id": "hamstrings", "layers": ["muscles"], "za": ["Muscles_of_lower_limbg/Posterior_compartment_of_thighg/"],
       "fr": { "name": "Ischio-jambiers", "wiki": "Muscles ischio-jambiers", "text": "Derrière la cuisse : ils plient ton genou quand tu cours." },
       "en": { "name": "Hamstrings", "wiki": "Hamstring", "text": "At the back of your thigh: they bend your knee when you run." } },
-    { "id": "calf", "layers": ["muscles"], "bp3d": ["(medial|lateral) head of (right|left) gastrocnemius", "(right|left) soleus"],
+
+    { "id": "calf", "layers": ["muscles"], "za": ["Muscles_of_lower_limbg/Posterior_compartment_of_legg/"],
       "fr": { "name": "Muscles du mollet", "wiki": "Triceps sural", "text": "Ils te mettent sur la pointe des pieds et te propulsent quand tu sautes." },
       "en": { "name": "Calf muscles", "wiki": "Triceps surae muscle", "text": "They lift you onto tiptoe and push you up when you jump." } },
-    { "id": "tibialis_anterior", "layers": ["muscles"], "bp3d": ["(right|left) tibialis anterior"],
+
+    { "id": "tibialis_anterior", "layers": ["muscles"], "za": ["Anterior_compartment_of_legg/Tibialis_anterior"],
       "fr": { "name": "Tibial antérieur", "wiki": "Muscle tibial antérieur", "text": "Devant la jambe : il relève le bout de ton pied pour que tu ne trébuches pas." },
       "en": { "name": "Tibialis anterior", "wiki": "Tibialis anterior muscle", "text": "At the front of your leg: it lifts the tip of your foot so you don't trip." } },
 
-    { "id": "aorta", "layers": ["blood"], "bp3d": ["aorta"], "noSplit": true,
+    { "id": "latissimus", "layers": ["muscles"], "za": ["Hypaxial_muscles_of_backg/Latissimus_dorsi"],
+      "fr": { "name": "Grand dorsal", "wiki": "Muscle grand dorsal", "text": "Un grand muscle large dans ton dos. Il tire tes bras vers le bas et vers l'arrière, comme quand tu grimpes ou que tu nages." },
+      "en": { "name": "Big back muscle (latissimus)", "wiki": "Latissimus dorsi muscle", "text": "A big wide muscle on your back. It pulls your arms down and back, like when you climb or swim." } },
+
+    { "id": "back_muscles", "layers": ["muscles"], "za": ["^Muscular:Dorsal_part_of_muscular_systemg/", "Muscles_of_thoraxg/Levatores_costarumg/"],
+      "fr": { "name": "Muscles du dos", "wiki": "Muscle érecteur du rachis", "text": "Ils longent ta colonne vertébrale et te tiennent bien droit." },
+      "en": { "name": "Back muscles", "wiki": "Erector spinae muscles", "text": "They run along your spine and keep you standing up straight." } },
+
+    { "id": "neck_muscles", "layers": ["muscles"], "za": ["^Muscular:Cervical_part_of_muscular_systemg/Muscles_of_neckg/"],
+      "fr": { "name": "Muscles du cou", "wiki": "Cou", "text": "Ils tiennent ta tête et t'aident à avaler et à parler." },
+      "en": { "name": "Neck muscles", "wiki": "Neck", "text": "They hold up your head and help you swallow and talk." } },
+
+    { "id": "face_muscles", "layers": ["muscles"], "za": ["Muscles_of_headg/(Superficial_muscles_of_headg|Masticatory_musclesg)/"],
+      "fr": { "name": "Muscles du visage", "wiki": "Muscle facial", "text": "Ils te font sourire, froncer les sourcils, faire des grimaces… et mâcher !" },
+      "en": { "name": "Face muscles", "wiki": "Facial muscles", "text": "They let you smile, frown, pull funny faces… and chew!" } },
+
+    { "id": "chest_muscles", "layers": ["muscles"], "za": ["^Muscular:Thoracic_part_of_muscular_systemg/Muscles_of_thoraxg/"],
+      "fr": { "name": "Muscles des côtes", "wiki": "Muscle intercostal", "text": "Ils soulèvent tes côtes quand tu respires et aident tes épaules à bouger." },
+      "en": { "name": "Rib muscles", "wiki": "Intercostal muscles", "text": "They lift your ribs when you breathe and help your shoulders move." } },
+
+    { "id": "brachialis", "layers": ["muscles"], "za": ["Anterior_compartment_of_armg/Brachialis"],
+      "fr": { "name": "Muscle brachial", "wiki": "Muscle brachial", "text": "Caché sous le biceps, il l'aide à plier ton coude." },
+      "en": { "name": "Brachialis", "wiki": "Brachialis muscle", "text": "Hidden under the biceps, it helps bend your elbow." } },
+
+    { "id": "shoulder_muscles", "layers": ["muscles"], "za": ["Muscles_of_upper_limbg/Scapulohumeral_musclesg/", "Anterior_compartment_of_armg/Coracobrachialis"],
+      "fr": { "name": "Muscles de l'épaule", "wiki": "Coiffe des rotateurs", "text": "Ils entourent ton épaule et font tourner ton bras dans tous les sens." },
+      "en": { "name": "Shoulder muscles", "wiki": "Rotator cuff", "text": "They wrap around your shoulder and turn your arm in every direction." } },
+
+    { "id": "hand_muscles", "layers": ["muscles"], "za": ["Muscles_of_upper_limbg/Muscles_of_handg/"],
+      "fr": { "name": "Muscles de la main", "wiki": "Main", "text": "Plein de petits muscles qui font bouger tes doigts avec précision, pour dessiner ou attraper." },
+      "en": { "name": "Hand muscles", "wiki": "Muscles of the hand", "text": "Lots of little muscles that move your fingers precisely, for drawing or grabbing." } },
+
+    { "id": "hip_muscles", "layers": ["muscles"], "za": ["Muscles_of_lower_limbg/(Superficial_gluteal_musclesg|Deep_gluteal_musclesg|Iliopsoas_muscleg)/"],
+      "fr": { "name": "Muscles de la hanche", "wiki": "Hanche", "text": "Ils font bouger ta cuisse et te gardent en équilibre quand tu marches." },
+      "en": { "name": "Hip muscles", "wiki": "Muscles of the hip", "text": "They move your thigh and keep you balanced when you walk." } },
+
+    { "id": "leg_muscles", "layers": ["muscles"], "za": ["Muscles_of_lower_limbg/(Anterior|Lateral)_compartment_of_legg/"],
+      "fr": { "name": "Muscles de la jambe", "wiki": "Jambe", "text": "Sur le devant et le côté de ta jambe, ils relèvent tes orteils et font pencher ton pied." },
+      "en": { "name": "Shin muscles", "wiki": "Human leg", "text": "On the front and side of your lower leg, they lift your toes and tilt your foot." } },
+
+    { "id": "foot_muscles", "layers": ["muscles"], "za": ["Muscles_of_lower_limbg/Muscles_of_footg/"],
+      "fr": { "name": "Muscles du pied", "wiki": "Pied (anatomie humaine)", "text": "Ils font bouger tes orteils et t'aident à garder l'équilibre." },
+      "en": { "name": "Foot muscles", "wiki": "Foot", "text": "They move your toes and help you keep your balance." } },
+
+    { "id": "aorta", "layers": ["blood"], "noSplit": true, "za": ["Aortag/(Aortic_arch|Abdominal_aorta|Ascending_aorta|Thoracic_aorta)$"],
       "fr": { "name": "Aorte", "wiki": "Aorte", "text": "La plus grosse artère : elle part du cœur et emmène le sang vers tout le corps.", "fact": "Chez un adulte, elle est à peu près aussi large qu'un tuyau d'arrosage." },
       "en": { "name": "Aorta", "wiki": "Aorta", "text": "The biggest artery: it leaves the heart and carries blood to the whole body.", "fact": "In a grown-up, it is about as wide as a garden hose." } },
-    { "id": "venae_cavae", "layers": ["blood"], "bp3d": ["superior vena cava", "inferior vena cava"], "noSplit": true,
+
+    { "id": "venae_cavae", "layers": ["blood"], "noSplit": true, "za": ["Systemic_veinsg/Superior_vena_cava$", "Inferior_vena_cava_\\((thoracic|abdominal)_part\\)$"],
       "fr": { "name": "Veines caves", "wiki": "Veine cave supérieure", "text": "Les deux plus grosses veines : elles ramènent le sang de tout le corps vers le cœur." },
       "en": { "name": "Venae cavae", "wiki": "Venae cavae", "text": "The two biggest veins: they bring blood from the whole body back to the heart." } },
-    { "id": "arteries", "layers": ["blood"], "leaf": [".*(brachiocephalic trunk|pulmonary trunk)", ".*(right|left) (common carotid|subclavian|axillary|brachial|radial|ulnar|common iliac|external iliac|femoral|popliteal|anterior tibial|posterior tibial|dorsalis pedis|pulmonary) artery", ".*(right|left) (deep|superficial) palmar arch"],
+
+    { "id": "arteries", "layers": ["blood"], "za": ["^Cardio:Arterial_systemg/(Systemic_arteriesg|Pulmonary_arteriesg)/"],
       "fr": { "name": "Artères", "wiki": "Artère", "text": "Les tuyaux qui transportent le sang rouge, plein d'oxygène, du cœur vers tout le corps.", "fact": "Pose deux doigts sur ton poignet : ce qui bat, c'est une artère. C'est ton pouls !" },
       "en": { "name": "Arteries", "wiki": "Artery", "text": "The tubes that carry bright red blood, full of oxygen, from the heart to the whole body.", "fact": "Put two fingers on your wrist: that beating is an artery. It is your pulse!" } },
-    { "id": "veins", "layers": ["blood"], "leaf": [".*(right|left) (internal jugular|brachiocephalic|subclavian|axillary|cephalic|basilic|median cubital|common iliac|external iliac|femoral|popliteal|great saphenous|small saphenous) vein"],
+
+    { "id": "veins", "layers": ["blood"], "za": ["^Cardio:Venous_systemg/(Systemic_veinsg|Pulmonary_veinsg)/"],
       "fr": { "name": "Veines", "wiki": "Veine", "text": "Les tuyaux qui ramènent le sang vers le cœur.", "fact": "On en voit parfois, bleues, sous la peau du poignet." },
       "en": { "name": "Veins", "wiki": "Vein", "text": "The tubes that bring blood back to the heart.", "fact": "You can sometimes see them, looking blue, under the skin of your wrist." } },
 
-    { "id": "spinal_cord", "layers": ["nerves"], "noSplit": true, "radius": 5,
-      "tubes": [[[0,-62,1462],[0,-66,1430],[0,-69,1395],[0,-65,1362],[0,-58,1330],[0,-55,1300],[0,-52,1265],[0,-49,1235],[0,-46,1205],[0,-43,1175],[0,-44,1150],[0,-48,1120],[0,-55,1090],[0,-65,1060],[0,-76,1035]]],
+    { "id": "spinal_cord", "layers": ["nerves"], "noSplit": true, "za": ["White_matter_of_spinal_cord$", "Roots_of_nervesg/", "(Anterior|Posterior)_root_of_spinal_nerve[lr]$", "Spinal_ganglion[lr]$"],
       "fr": { "name": "Moelle épinière", "wiki": "Moelle spinale", "text": "Un gros câble de nerfs caché dans ta colonne vertébrale. Il porte les messages entre ton cerveau et ton corps." },
       "en": { "name": "Spinal cord", "wiki": "Spinal cord", "text": "A thick cable of nerves hidden inside your spine. It carries messages between your brain and your body." } },
-    { "id": "arm_nerves", "layers": ["nerves"], "radius": 2.2, "mirror": true,
-      "tubes": [
-        [[-8,-66,1395],[-45,-80,1365],[-93,-98,1331],[-133,-96,1305],[-150,-90,1263],[-163,-84,1222],[-179,-81,1182],[-188,-85,1143],[-194,-92,1099],[-203,-94,1060],[-215,-97,1020],[-228,-101,980],[-237,-106,940],[-245,-113,900],[-253,-123,857],[-258,-135,820],[-265,-140,790]],
-        [[-93,-98,1331],[-140,-88,1300],[-160,-72,1222],[-175,-62,1150],[-186,-56,1085],[-193,-53,1045],[-205,-75,1000],[-218,-97,941],[-228,-109,880],[-237,-125,817],[-242,-130,790]],
-        [[-93,-98,1331],[-140,-82,1310],[-162,-62,1250],[-188,-52,1180],[-215,-60,1110],[-232,-78,1060],[-244,-90,1000],[-257,-96,930],[-267,-110,860],[-274,-126,815]]
-      ],
+
+    { "id": "arm_nerves", "layers": ["nerves"], "za": ["Spinal_nervesg/Brachial_plexusg/"],
       "fr": { "name": "Nerfs du bras", "wiki": "Plexus brachial", "text": "Ils partent de la moelle épinière et descendent jusqu'au bout des doigts : grâce à eux, tu sens ce que tu touches et tu bouges tes doigts.", "fact": "Le picotement quand on se cogne le coude, c'est l'un de ces nerfs !" },
       "en": { "name": "Arm nerves", "wiki": "Brachial plexus", "text": "They start at the spinal cord and run down to your fingertips: thanks to them you feel what you touch and move your fingers.", "fact": "That tingle when you bump your \"funny bone\" is one of these nerves!" } },
-    { "id": "sciatic_nerve", "layers": ["nerves"], "radius": 3, "mirror": true,
-      "tubes": [
-        [[-6,-75,1010],[-15,-60,950],[-35,-40,890],[-60,-25,845],[-75,-20,800],[-85,-25,720],[-86,-35,620],[-83,-42,540],[-80,-48,470],[-76,-50,420],[-78,-52,340],[-72,-52,260],[-64,-55,185],[-58,-50,105],[-54,-46,55],[-56,-56,15],[-62,-80,-25],[-80,-110,-50]],
-        [[-80,-48,470],[-98,-46,410],[-118,-62,345],[-104,-82,310],[-96,-92,250],[-92,-96,180],[-86,-93,100],[-78,-98,30],[-85,-130,-30]]
-      ],
+
+    { "id": "sciatic_nerve", "layers": ["nerves"], "za": ["Sacral_plexusg/Sciatic_nerve[lr]"],
       "fr": { "name": "Nerf sciatique", "wiki": "Nerf sciatique", "text": "Le plus gros nerf du corps ! Il passe dans la fesse, derrière la cuisse, et descend jusqu'au pied.", "fact": "Chez un adulte, il est presque aussi large qu'un doigt." },
       "en": { "name": "Sciatic nerve", "wiki": "Sciatic nerve", "text": "The biggest nerve in the body! It goes through your bottom, down the back of your thigh and all the way to your foot.", "fact": "In a grown-up it is almost as wide as a finger." } },
 
-    { "id": "head", "layers": ["skin"], "anchor": [40, 1600, "front"],
+    { "id": "nerves", "layers": ["nerves"], "za": ["^Nervous:Peripheral_nervous_systemg/"],
+      "fr": { "name": "Nerfs", "wiki": "Nerf", "text": "Des fils très fins qui vont partout dans ton corps. Ils portent les messages entre ton cerveau et chaque partie de toi.", "fact": "Certains messages y filent plus vite qu'une voiture de course !" },
+      "en": { "name": "Nerves", "wiki": "Nerve", "text": "Very thin wires that go everywhere in your body. They carry messages between your brain and every part of you.", "fact": "Some messages travel along them faster than a racing car!" } },
+
+    { "id": "head", "layers": ["skin"], "anchor": [0.03, 0.7, "front"],
       "fr": { "name": "Tête", "wiki": "Tête (anatomie humaine)", "text": "Ta tête abrite ton cerveau, tes yeux, ton nez, ta bouche et tes oreilles." },
       "en": { "name": "Head", "wiki": "Head", "text": "Your head holds your brain, eyes, nose, mouth and ears." } },
-    { "id": "ear", "layers": ["skin"], "anchor": [-75, 1510, "right"],
+
+    { "id": "ear", "layers": ["skin"], "anchor": [-0.07, 0.63, "right"],
       "fr": { "name": "Oreille", "wiki": "Oreille", "text": "Tes oreilles attrapent les sons et t'aident aussi à garder l'équilibre." },
       "en": { "name": "Ear", "wiki": "Ear", "text": "Your ears catch sounds and also help you keep your balance." } },
-    { "id": "nose", "layers": ["skin"], "anchor": [0, 1495, "front"],
+
+    { "id": "nose", "layers": ["skin"], "anchor": [0, 0.625, "front"],
       "fr": { "name": "Nez", "wiki": "Nez", "text": "Ton nez sent les odeurs et réchauffe l'air que tu respires." },
       "en": { "name": "Nose", "wiki": "Human nose", "text": "Your nose smells things and warms up the air you breathe." } },
-    { "id": "mouth", "layers": ["skin"], "anchor": [0, 1462, "front"],
+
+    { "id": "mouth", "layers": ["skin"], "anchor": [0, 0.58, "front"],
       "fr": { "name": "Bouche", "wiki": "Bouche", "text": "Pour manger, parler, chanter… et faire de grands sourires !" },
       "en": { "name": "Mouth", "wiki": "Mouth", "text": "For eating, talking, singing… and big smiles!" } },
-    { "id": "neck", "layers": ["skin"], "anchor": [25, 1390, "front"],
+
+    { "id": "neck", "layers": ["skin"], "anchor": [0.02, 0.5, "front"],
       "fr": { "name": "Cou", "wiki": "Cou", "text": "Il porte ta tête et la fait tourner. L'air et la nourriture y passent." },
       "en": { "name": "Neck", "wiki": "Neck", "text": "It holds up your head and turns it. Air and food travel through it." } },
-    { "id": "shoulder", "layers": ["skin"], "anchor": [-190, 1330, "front"],
+
+    { "id": "shoulder", "layers": ["skin"], "anchor": [-0.185, 0.41, "front"],
       "fr": { "name": "Épaule", "wiki": "Épaule", "text": "L'articulation qui fait tourner ton bras dans tous les sens." },
       "en": { "name": "Shoulder", "wiki": "Shoulder", "text": "The joint that lets your arm swing round in every direction." } },
-    { "id": "chest", "layers": ["skin"], "anchor": [60, 1250, "front"],
+
+    { "id": "chest", "layers": ["skin"], "anchor": [0.08, 0.36, "front"],
       "fr": { "name": "Poitrine", "wiki": "Thorax", "text": "Elle se soulève quand tu respires. Ton cœur et tes poumons sont à l'intérieur." },
       "en": { "name": "Chest", "wiki": "Thorax", "text": "It rises when you breathe. Your heart and lungs are inside." } },
-    { "id": "arm", "layers": ["skin"], "anchor": [-205, 1180, "front"],
+
+    { "id": "arm", "layers": ["skin"], "anchor": [-0.21, 0.27, "front"],
       "fr": { "name": "Bras", "wiki": "Membre supérieur (anatomie humaine)", "text": "La partie entre l'épaule et le coude." },
       "en": { "name": "Upper arm", "wiki": "Arm", "text": "The part between your shoulder and your elbow." } },
-    { "id": "elbow", "layers": ["skin"], "anchor": [210, 1045, "back"],
+
+    { "id": "elbow", "layers": ["skin"], "anchor": [0.225, 0.16, "back"],
       "fr": { "name": "Coude", "wiki": "Coude", "text": "L'articulation qui plie ton bras en deux." },
       "en": { "name": "Elbow", "wiki": "Elbow", "text": "The joint that bends your arm in the middle." } },
-    { "id": "forearm", "layers": ["skin"], "anchor": [-240, 930, "front"],
+
+    { "id": "forearm", "layers": ["skin"], "anchor": [-0.238, 0.02, "front"],
       "fr": { "name": "Avant-bras", "wiki": "Avant-bras", "text": "La partie entre le coude et le poignet." },
       "en": { "name": "Forearm", "wiki": "Forearm", "text": "The part between your elbow and your wrist." } },
-    { "id": "wrist", "layers": ["skin"], "anchor": [262, 810, "front"],
+
+    { "id": "wrist", "layers": ["skin"], "anchor": [0.27, -0.105, "front"],
       "fr": { "name": "Poignet", "wiki": "Poignet", "text": "L'articulation qui fait bouger ta main de haut en bas et sur les côtés." },
       "en": { "name": "Wrist", "wiki": "Wrist", "text": "The joint that moves your hand up, down and side to side." } },
-    { "id": "hand", "layers": ["skin"], "anchor": [-270, 740, "front"],
+
+    { "id": "hand", "layers": ["skin"], "anchor": [-0.275, -0.17, "front"],
       "fr": { "name": "Main", "wiki": "Main", "text": "Avec tes mains, tu peux attraper, dessiner, applaudir et faire des câlins.", "fact": "Chaque main a 5 doigts, et le pouce est le seul qui peut toucher tous les autres." },
       "en": { "name": "Hand", "wiki": "Hand", "text": "With your hands you can grab, draw, clap and give hugs.", "fact": "Each hand has 5 fingers, and the thumb is the only one that can touch all the others." } },
-    { "id": "belly", "layers": ["skin"], "anchor": [45, 1020, "front"],
+
+    { "id": "belly", "layers": ["skin"], "anchor": [0.05, 0.14, "front"],
       "fr": { "name": "Ventre", "wiki": "Abdomen", "text": "Ton estomac, tes intestins et ton foie sont rangés à l'intérieur." },
       "en": { "name": "Tummy", "wiki": "Abdomen", "text": "Your stomach, intestines and liver are tucked away inside." } },
-    { "id": "navel", "layers": ["skin"], "anchor": [0, 975, "front"],
+
+    { "id": "navel", "layers": ["skin"], "anchor": [0, 0.075, "front"],
       "fr": { "name": "Nombril", "wiki": "Nombril", "text": "C'est la trace du cordon qui te reliait à ta maman quand tu étais dans son ventre." },
       "en": { "name": "Belly button", "wiki": "Navel", "text": "It is where the cord joined you to your mum when you were in her tummy." } },
-    { "id": "hip", "layers": ["skin"], "anchor": [-140, 880, "front"],
+
+    { "id": "hip", "layers": ["skin"], "anchor": [-0.165, -0.1, "front"],
       "fr": { "name": "Hanche", "wiki": "Hanche", "text": "L'articulation qui relie ta jambe à ton bassin." },
       "en": { "name": "Hip", "wiki": "Hip", "text": "The joint that joins your leg to your pelvis." } },
-    { "id": "thigh", "layers": ["skin"], "anchor": [90, 620, "front"],
+
+    { "id": "thigh", "layers": ["skin"], "anchor": [0.095, -0.3, "front"],
       "fr": { "name": "Cuisse", "wiki": "Cuisse", "text": "Le haut de la jambe, entre la hanche et le genou." },
       "en": { "name": "Thigh", "wiki": "Thigh", "text": "The top part of your leg, between your hip and your knee." } },
-    { "id": "knee", "layers": ["skin"], "anchor": [-80, 380, "front"],
+
+    { "id": "knee", "layers": ["skin"], "anchor": [-0.08, -0.507, "front"],
       "fr": { "name": "Genou", "wiki": "Genou", "text": "Le genou plie ta jambe pour marcher, courir, sauter et t'accroupir." },
       "en": { "name": "Knee", "wiki": "Knee", "text": "Your knee bends your leg so you can walk, run, jump and crouch." } },
-    { "id": "ankle", "layers": ["skin"], "anchor": [95, 30, "front"],
+
+    { "id": "ankle", "layers": ["skin"], "anchor": [0.08, -0.86, "front"],
       "fr": { "name": "Cheville", "wiki": "Cheville (anatomie)", "text": "L'articulation entre ta jambe et ton pied." },
       "en": { "name": "Ankle", "wiki": "Ankle", "text": "The joint between your leg and your foot." } },
-    { "id": "foot", "layers": ["skin"], "anchor": [-110, -40, "front"],
+
+    { "id": "foot", "layers": ["skin"], "anchor": [-0.095, -0.905, "front"],
       "fr": { "name": "Pied", "wiki": "Pied (anatomie humaine)", "text": "Tes pieds te portent toute la journée et t'aident à garder l'équilibre." },
       "en": { "name": "Foot", "wiki": "Foot", "text": "Your feet carry you all day and help you keep your balance." } },
-    { "id": "toes", "layers": ["skin"], "anchor": [120, -65, "front"],
+
+    { "id": "toes", "layers": ["skin"], "anchor": [0.106, -0.925, "front"],
       "fr": { "name": "Orteils", "wiki": "Orteil", "text": "Les doigts de pied : 5 à chaque pied, qui t'aident à garder l'équilibre." },
       "en": { "name": "Toes", "wiki": "Toe", "text": "The fingers of your feet: 5 on each foot, helping you keep your balance." } },
-    { "id": "back", "layers": ["skin"], "anchor": [50, 1200, "back"],
+
+    { "id": "back", "layers": ["skin"], "anchor": [0.05, 0.27, "back"],
       "fr": { "name": "Dos", "wiki": "Dos", "text": "Tout l'arrière de ton tronc. Ta colonne vertébrale passe au milieu." },
       "en": { "name": "Back", "wiki": "Human back", "text": "The whole back of your body. Your spine runs down the middle." } },
-    { "id": "buttocks", "layers": ["skin"], "anchor": [70, 780, "back"],
+
+    { "id": "buttocks", "layers": ["skin"], "anchor": [0.085, -0.06, "back"],
       "fr": { "name": "Fesses", "wiki": "Fesse", "text": "Un coussin de muscles bien pratique pour s'asseoir !" },
       "en": { "name": "Bottom", "wiki": "Buttocks", "text": "A cushion of muscles that comes in handy for sitting down!" } },
-    { "id": "calf_skin", "layers": ["skin"], "anchor": [-80, 250, "back"],
+
+    { "id": "calf_skin", "layers": ["skin"], "anchor": [-0.09, -0.63, "back"],
       "fr": { "name": "Mollet", "wiki": "Mollet", "text": "L'arrière de la jambe, sous le genou." },
       "en": { "name": "Calf", "wiki": "Calf (leg)", "text": "The back of your leg, below the knee." } },
-    { "id": "heel", "layers": ["skin"], "anchor": [90, -55, "back"],
+
+    { "id": "heel", "layers": ["skin"], "anchor": [0.078, -0.915, "back"],
       "fr": { "name": "Talon", "wiki": "Talon (anatomie)", "text": "L'arrière du pied : c'est lui qui touche le sol en premier quand tu marches." },
       "en": { "name": "Heel", "wiki": "Heel", "text": "The back of your foot: it touches the ground first when you walk." } }
   ]
